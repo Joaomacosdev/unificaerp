@@ -1,9 +1,12 @@
 package br.com.unificaerp.plano.model;
 
+import br.com.unificaerp.empresa.model.Empresa;
 import br.com.unificaerp.plano.model.enums.TipoPlano;
 import jakarta.persistence.*;
 
-import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "planos")
@@ -31,4 +34,55 @@ public class Plano {
     @Column(name = "tipo_plano", nullable = false)
     private TipoPlano tipoPlano;
 
+    @OneToMany(mappedBy = "plano", fetch = FetchType.LAZY)
+    private List<Empresa> empresas = new ArrayList<>();
+
+    public Plano() {
+    }
+
+    public Plano(String nome, String descricao, Boolean ativo, Double valorMensal, Integer limiteUsuario, Integer limiteCliente, TipoPlano tipoPlano, List<Empresa> empresas) {
+        this.nome = nome;
+        this.descricao = descricao;
+        this.ativo = ativo;
+        this.valorMensal = valorMensal;
+        this.limiteUsuario = limiteUsuario;
+        this.limiteCliente = limiteCliente;
+        this.tipoPlano = tipoPlano;
+        this.empresas = empresas;
+    }
+
+    public void adicionarEmpresa(Empresa empresa){
+        empresas.add(empresa);
+        empresa.associarPlano(this);
+    }
+
+    public void removerEmpresa(Empresa empresa){
+        empresas.remove(empresa);
+        empresa.desassociarPlano();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Plano plano = (Plano) o;
+        return Objects.equals(id, plano.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
+
+    @Override
+    public String toString() {
+        return "Plano{" +
+                "nome='" + nome + '\'' +
+                ", descricao='" + descricao + '\'' +
+                ", ativo=" + ativo +
+                ", valorMensal=" + valorMensal +
+                ", limiteUsuario=" + limiteUsuario +
+                ", limiteCliente=" + limiteCliente +
+                ", tipoPlano=" + tipoPlano +
+                '}';
+    }
 }

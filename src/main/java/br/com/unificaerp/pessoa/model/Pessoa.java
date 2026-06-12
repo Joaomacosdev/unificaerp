@@ -2,9 +2,11 @@ package br.com.unificaerp.pessoa.model;
 
 import br.com.unificaerp.empresa.model.Empresa;
 import br.com.unificaerp.pessoa.model.enums.TipoPessoa;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
 @Table(name = "pessoas",
@@ -57,6 +59,66 @@ public class Pessoa {
     @Column(name = "complemento", nullable = false, length = 150)
     private String complemento;
 
-    //private Empresa empresa;
+    @JsonBackReference
+    @OneToOne(mappedBy = "pessoa", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Empresa empresa;
 
+    public Pessoa() {
+    }
+
+    public Pessoa(String nome, String razaoSocial, String nomeFantasia, String inscEstadual, String cnpj, String telefone, TipoPessoa tipoPessoa, Boolean ativo, LocalDateTime dataCadastro, String observacao, String cep, String logradouro, String bairro, String estado, String cidade, String pais, String complemento, Empresa empresa) {
+        this.nome = nome;
+        this.razaoSocial = razaoSocial;
+        this.nomeFantasia = nomeFantasia;
+        this.inscEstadual = inscEstadual;
+        this.cnpj = cnpj;
+        this.telefone = telefone;
+        this.tipoPessoa = tipoPessoa;
+        this.ativo = ativo;
+        this.dataCadastro = dataCadastro;
+        this.observacao = observacao;
+        this.cep = cep;
+        this.logradouro = logradouro;
+        this.bairro = bairro;
+        this.estado = estado;
+        this.cidade = cidade;
+        this.pais = pais;
+        this.complemento = complemento;
+        this.empresa = empresa;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Pessoa pessoa = (Pessoa) o;
+        return Objects.equals(id, pessoa.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
+
+    @Override
+    public String toString() {
+        return "Pessoa{" +
+                "nome='" + nome + '\'' +
+                ", razaoSocial='" + razaoSocial + '\'' +
+                ", nomeFantasia='" + nomeFantasia + '\'' +
+                ", inscEstadual='" + inscEstadual + '\'' +
+                ", cnpj='" + cnpj + '\'' +
+                ", telefone='" + telefone + '\'' +
+                ", tipoPessoa=" + tipoPessoa +
+                ", ativo=" + ativo +
+                ", dataCadastro=" + dataCadastro +
+                ", observacao='" + observacao + '\'' +
+                ", cep='" + cep + '\'' +
+                ", logradouro='" + logradouro + '\'' +
+                ", bairro='" + bairro + '\'' +
+                ", estado='" + estado + '\'' +
+                ", cidade='" + cidade + '\'' +
+                ", pais='" + pais + '\'' +
+                ", complemento='" + complemento + '\'' +
+                 '}';
+    }
 }
