@@ -2,12 +2,12 @@ package br.com.unificaerp.pessoa.model.enums;
 
 public enum TipoPessoa {
 
-    FISICA("Pessoa física"),
-    JURIDICA("Pessoa juridica");
+    JURIDICA("Jurídica"),
+    FISICA("Fisíca");
 
     private final String descricao;
 
-    TipoPessoa(String descricao) {
+    private TipoPessoa(String descricao) {
         this.descricao = descricao;
     }
 
