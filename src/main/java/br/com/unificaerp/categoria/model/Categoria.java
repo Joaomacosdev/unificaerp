@@ -1,7 +1,11 @@
 package br.com.unificaerp.categoria.model;
 
 import br.com.unificaerp.empresa.model.Empresa;
+import br.com.unificaerp.produto.model.Produto;
 import jakarta.persistence.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "categoria")
@@ -22,6 +26,9 @@ public class Categoria {
             foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,
                     name = "empresa_fk"))
     private Empresa empresa;
+
+    @OneToMany(mappedBy = "categoria", fetch = FetchType.LAZY)
+    private List<Produto> produtos = new ArrayList<>();
 
     @Override
     public String toString() {
