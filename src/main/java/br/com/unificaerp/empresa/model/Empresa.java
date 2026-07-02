@@ -3,9 +3,9 @@ package br.com.unificaerp.empresa.model;
 import br.com.unificaerp.cliente_funcionario.model.ClienteFuncionario;
 import br.com.unificaerp.pessoa.model.Pessoa;
 import br.com.unificaerp.plano.model.Plano;
+import br.com.unificaerp.produto.model.Produto;
 import br.com.unificaerp.usuario.model.Usuario;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
@@ -46,6 +46,9 @@ public class Empresa {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "plano_id", nullable = false)
     private Plano plano;
+
+    @OneToMany(mappedBy = "empresa", fetch = FetchType.LAZY)
+    private List<Produto> produtos = new ArrayList<>();
 
     @OneToMany(mappedBy = "empresa", fetch = FetchType.LAZY)
     private List<ClienteFuncionario> clienteFuncionarios = new ArrayList<>();
