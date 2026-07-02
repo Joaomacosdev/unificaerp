@@ -1,4 +1,4 @@
 package br.com.unificaerp.chamado.model.enums;
 
-public enum Status {
+public enum TipoChamado {
 }
