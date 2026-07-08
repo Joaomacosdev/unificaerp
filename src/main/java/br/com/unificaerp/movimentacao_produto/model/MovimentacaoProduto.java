@@ -26,16 +26,16 @@ public class MovimentacaoProduto {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pedido_id", nullable = false,
-            foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "pedido_fk"))
+            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, name = "pedido_fk"))
     private Pedido pedido;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "produto_id",
-            foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "produto_fk"))
+            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, name = "produto_fk"))
     private Produto produto;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "empresa_id", nullable = false,
-            foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "empresa_fk"))
+            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, name = "empresa_fk"))
     private Empresa empresa;
 }

@@ -40,7 +40,7 @@ public class Chamado {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "aberto_user_id", nullable = false,
             foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, name = "aberto_user_fk"))
-    private Usuario abertoUserId;
+    private Usuario abertoUser;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fechado_user_id", nullable = false,

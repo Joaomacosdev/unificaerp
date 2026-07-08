@@ -3,6 +3,7 @@ package br.com.unificaerp.cliente_funcionario.model;
 import br.com.unificaerp.cliente_funcionario.model.enums.TipoCliente;
 import br.com.unificaerp.empresa.model.Empresa;
 import br.com.unificaerp.pessoa.model.Pessoa;
+import br.com.unificaerp.usuario.model.Usuario;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -10,8 +11,11 @@ import jakarta.persistence.*;
 import java.util.Objects;
 
 @Entity
-@Table(name = "cliente_funcionarios")
-@SequenceGenerator(name = "seq_cliente_funcionario", sequenceName = "seq_cliente_funcionario", allocationSize = 1, initialValue = 1)
+@Table(name = "cliente_funcionarios", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_cliente_funcionario_usuario_pessoa", columnNames = {"usuario_id","pessoa_id"}),
+        @UniqueConstraint(name = "uk_cliente_funcionario_usuario", columnNames = {"usuario_id"}),
+        @UniqueConstraint(name = "uk_cliente_funcionario_pessoa", columnNames = {"pessoa_id"})
+})@SequenceGenerator(name = "seq_cliente_funcionario", sequenceName = "seq_cliente_funcionario", allocationSize = 1, initialValue = 1)
 public class ClienteFuncionario {
 
     @Id
@@ -21,6 +25,13 @@ public class ClienteFuncionario {
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_cliente", nullable = false)
     private TipoCliente tipoCliente;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_id",
+            nullable = false,
+            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,
+                    name = "usuario_fk"))
+    private Usuario usuario;
 
     @JsonIgnore
     @ManyToOne()

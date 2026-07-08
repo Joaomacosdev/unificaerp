@@ -47,6 +47,8 @@ public class Empresa {
     @JoinColumn(name = "plano_id", nullable = false)
     private Plano plano;
 
+
+
     @OneToMany(mappedBy = "empresa", fetch = FetchType.LAZY)
     private List<Produto> produtos = new ArrayList<>();
 
