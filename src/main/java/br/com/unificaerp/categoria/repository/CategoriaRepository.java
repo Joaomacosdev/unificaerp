@@ -1,7 +1,9 @@
 package br.com.unificaerp.categoria.repository;
 
 import br.com.unificaerp.categoria.model.Categoria;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -9,9 +11,36 @@ import java.util.List;
 
 public interface CategoriaRepository extends JpaRepository<Categoria, Long> {
 
-    @Query("SELECT c FROM  Categoria c WHERE c.empresa.id = idEmpresa")
-    List<Categoria> findAll(@Param("idEmpresa")  Long idEmpresa);
+    /*
+     * Busca todas as categorias da empresa passada como parametro
+     */
+    @Query("select c from Categoria c where c.empresa.id = :idEmpresa")
+    List<Categoria> findAll(@Param("idEmpresa") Long idEmpresa);
 
-    @Query("SELECT c FROM Categoria c WHERE c.nome like %:nome%")
-    List<Categoria> buscaPorNome(@Param("nome") String nome);
+
+    /*Busca as categroias por partes ou nome completo passado por parametro e da empresa passada por parametro*/
+    @Query("select c from Categoria c where c.empresa.id = :idEmpresa "
+            + " and upper(trim(c.nome)) "
+            + " like upper(concat('%', trim(:nome) ,'%'))")
+    List<Categoria> buscaPorNome(@Param("nome") String nome, @Param("idEmpresa") Long idEmpresa);
+
+
+    /*Retorna true se já existir categoria com o mesmo nome para a mesma empresa, no caso não podemso deixar salvar para não ficar repetido no banco de dados*/
+    @Query("select count(c.id) > 0 from Categoria c where c.empresa.id = :idEmpresa "
+            + " and upper(trim(c.nome)) "
+            + " = upper(trim(:nome))")
+    boolean existePorNome(@Param("nome") String nome, @Param("idEmpresa") Long idEmpresa);
+
+    /*Verifica se existe outra categoria no banco de dados com o mesmo nome mas ID diferentes da que está tentando atualizar*/
+    @Query("select count(c.id) > 0 from Categoria c where c.empresa.id = :idEmpresa "
+            + " and upper(trim(c.nome)) "
+            + " = upper(trim(:nome)) and c.id <> :id")
+    boolean existePorNomeDiferenteId(@Param("id") Long id, @Param("nome") String nome, @Param("idEmpresa") Long idEmpresa);
+
+    /*Delete de um categoria de uma determinada empresa*/
+    @Transactional
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("delete from Categoria c where c.empresa.id = :idEmpresa and c.id = :id")
+    void deleteById(@Param("id") Long id, @Param("idEmpresa") Long idEmpresa);
+
 }
