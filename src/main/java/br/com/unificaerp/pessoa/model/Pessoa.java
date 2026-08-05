@@ -74,14 +74,12 @@ public class Pessoa {
                     name = "empresa_fk"))
     private Empresa empresa;
 
-    @JsonBackReference
-    @OneToOne(mappedBy = "pessoa", cascade = CascadeType.ALL, orphanRemoval = true)
-    private ClienteFuncionario clienteFuncionario;
+
 
     public Pessoa() {
     }
 
-    public Pessoa(String nome, String razaoSocial, String nomeFantasia, String inscEstadual, String cnpj, String cpf, String email, String telefone, TipoPessoa tipoPessoa, Boolean ativo, LocalDateTime dataCadastro, String observacao, String cep, String logradouro, String bairro, String estado, String cidade, String pais, String complemento, Empresa empresa, ClienteFuncionario clienteFuncionario) {
+    public Pessoa(String nome, String razaoSocial, String nomeFantasia, String inscEstadual, String cnpj, String cpf, String email, String telefone, TipoPessoa tipoPessoa, Boolean ativo, LocalDateTime dataCadastro, String observacao, String cep, String logradouro, String bairro, String estado, String cidade, String pais, String complemento, Empresa empresa) {
         this.nome = nome;
         this.razaoSocial = razaoSocial;
         this.nomeFantasia = nomeFantasia;
@@ -102,7 +100,6 @@ public class Pessoa {
         this.pais = pais;
         this.complemento = complemento;
         this.empresa = empresa;
-        this.clienteFuncionario = clienteFuncionario;
     }
 
     @Override

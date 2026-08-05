@@ -30,10 +30,29 @@ public class Categoria {
     @OneToMany(mappedBy = "categoria", fetch = FetchType.LAZY)
     private List<Produto> produtos = new ArrayList<>();
 
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public Empresa getEmpresa() {
+        return empresa;
+    }
+
+    public List<Produto> getProdutos() {
+        return produtos;
+    }
+
     @Override
     public String toString() {
         return "Categoria{" +
                 "nome='" + nome +
                 '}';
     }
+
+
 }
