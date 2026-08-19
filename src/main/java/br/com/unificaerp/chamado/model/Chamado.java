@@ -5,7 +5,7 @@ import br.com.unificaerp.chamado.model.enums.PrioridadeChamado;
 import br.com.unificaerp.chamado.model.enums.StatusChamado;
 import br.com.unificaerp.chamado.model.enums.TipoChamado;
 import br.com.unificaerp.empresa.model.Empresa;
-import br.com.unificaerp.menssagem.model.Menssagem;
+import br.com.unificaerp.menssagem.model.Mensagem;
 import br.com.unificaerp.usuario.model.Usuario;
 import jakarta.persistence.*;
 
@@ -35,7 +35,7 @@ public class Chamado {
     private Prioridade prioridade;
 
     @OneToMany(mappedBy = "chamado", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<Menssagem> menssagens = new ArrayList<Menssagem>();
+    private List<Mensagem> menssagens = new ArrayList<Mensagem>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "aberto_user_id", nullable = false,

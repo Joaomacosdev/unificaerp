@@ -1,7 +1,49 @@
 package br.com.unificaerp.plano.repository;
 
 import br.com.unificaerp.plano.model.Plano;
-import org.springframework.data.jpa.repository.JpaRepository;
+import br.com.unificaerp.shared.IgnoreEmpresaId;
+import br.com.unificaerp.shared.UnificaRepository;
+import jakarta.transaction.Transactional;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
-public interface PlanoRepository extends JpaRepository<Plano, Long> {
+import java.util.List;
+
+@IgnoreEmpresaId
+@Repository
+public interface PlanoRepository extends UnificaRepository<Plano, Long> {
+
+    /*
+     * Busca todos os planos
+     */
+    @Query("select p from Plano p")
+    List<Plano> findAll();
+
+
+    /*Busca os planos por partes ou nome completo passado por parametro*/
+    @Query("select p from Plano p "
+            + " where unaccent(upper(trim(p.nome))) "
+            + " like unaccent(upper(concat('%', trim(:nome) ,'%')))")
+    List<Plano> buscaPorNome(@Param("nome") String nome);
+
+
+    /*Retorna true se já existir plano com o mesmo nome, no caso não podemos deixar salvar para não ficar repetido no banco de dados*/
+    @Query("select count(p.id) > 0 from Plano p "
+            + " where unaccent(upper(trim(p.nome))) "
+            + " = unaccent(upper(trim(:nome)))")
+    boolean existePorNome(@Param("nome") String nome);
+
+    /*Verifica se existe outro plano no banco de dados com o mesmo nome mas ID diferentes da que está tentando atualizar*/
+    @Query("select count(p.id) > 0 from Plano p "
+            + " where unaccent(upper(trim(p.nome))) "
+            + " = unaccent(upper(trim(:nome))) and p.id <> :id")
+    boolean existePorNomeDiferenteId(@Param("id") Long id, @Param("nome") String nome);
+
+    /*Delete de um plano*/
+    @Transactional
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("delete from Plano p where p.id = :id")
+    void deleteById(@Param("id") Long id);
 }

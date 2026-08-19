@@ -100,3 +100,5 @@ INSERT INTO public.categoria (id, nome, empresa_id) VALUES
 
 -- Reabilita restrições, triggers e constraints
 SET session_replication_role = origin;
+
+CREATE EXTENSION IF NOT EXISTS unaccent;
