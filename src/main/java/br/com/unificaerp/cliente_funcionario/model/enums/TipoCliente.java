@@ -1,14 +1,16 @@
 package br.com.unificaerp.cliente_funcionario.model.enums;
 
 public enum TipoCliente {
-    PF("Pessoa física"),
-    PJ("Pessoa jurídica");
+    CLIENTE("Cliente"),
+    FUNCIONARIO("Funcionário"),
+    PRESTADOR_SERVICO("Prestador de serviço");
 
-    private String descricao;
+    private final String descricao;
 
-    TipoCliente(String descricao) {
+    private TipoCliente(String descricao) {
         this.descricao = descricao;
     }
+
 
     public String getDescricao() {
         return descricao;

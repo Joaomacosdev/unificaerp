@@ -4,12 +4,18 @@ import br.com.unificaerp.cliente_funcionario.model.enums.TipoCliente;
 import br.com.unificaerp.empresa.model.Empresa;
 import br.com.unificaerp.pessoa.model.Pessoa;
 import br.com.unificaerp.usuario.model.Usuario;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
+import lombok.Data;
 
 import java.util.Objects;
 
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "id"
+)
+@JsonIdentityReference(alwaysAsId = true)
+@Data
 @Entity
 @Table(name = "cliente_funcionarios", uniqueConstraints = {
         @UniqueConstraint(name = "uk_cliente_funcionario_usuario_pessoa", columnNames = {"usuario_id","pessoa_id"}),
@@ -28,7 +34,7 @@ public class ClienteFuncionario {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id",
-            nullable = false,
+            nullable = true,
             foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,
                     name = "usuario_fk"))
     private Usuario usuario;
@@ -66,4 +72,6 @@ public class ClienteFuncionario {
     public int hashCode() {
         return Objects.hashCode(id);
     }
+
+
 }

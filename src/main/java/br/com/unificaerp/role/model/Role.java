@@ -2,6 +2,7 @@ package br.com.unificaerp.role.model;
 
 import br.com.unificaerp.usuario.model.Usuario;
 import jakarta.persistence.*;
+import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -15,7 +16,7 @@ import java.util.Set;
         @UniqueConstraint(name = "uk_role_acesso", columnNames = "acesso")
  })
 @SequenceGenerator(name = "seq_role", sequenceName = "seq_role", allocationSize = 1, initialValue = 1)
-
+@Getter
 public class Role implements GrantedAuthority {
 
     @Id
@@ -24,8 +25,7 @@ public class Role implements GrantedAuthority {
     @Column(nullable = false, length = 50)
     private String acesso;
 
-    @ManyToMany(mappedBy = "roles")
-    private Set<Usuario> usuarios = new HashSet<>();
+
 
     public Role() {
     }

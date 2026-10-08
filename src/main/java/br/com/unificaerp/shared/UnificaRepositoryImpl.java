@@ -163,7 +163,7 @@ public class UnificaRepositoryImpl<T, ID extends Serializable> extends SimpleJpa
     @Override
     public Optional<T> buscarPorId(ID id, Long empresaId) {
 
-        String jpql = "from " + domainClass.getSimpleName() + " where id :id";
+        String jpql = "from " + domainClass.getSimpleName() + " where id = :id";
 
         if (multiEmpresa) {
             jpql += " and empresa.id = :empresaId";
@@ -446,5 +446,4 @@ public class UnificaRepositoryImpl<T, ID extends Serializable> extends SimpleJpa
             throw new UnsupportedOperationException("o método: " + metodo + " não pode ser usado. " + MSG_BLOQUEIO_QUERY);
         }
     }
-
 }

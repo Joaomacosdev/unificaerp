@@ -1,0 +1,162 @@
+package br.com.unificaerp.usuario.controller;
+
+import br.com.unificaerp.infra.security.dto.AlterarSenhaDTO;
+import br.com.unificaerp.infra.security.dto.LoginDTO;
+import br.com.unificaerp.infra.security.dto.TokenDTO;
+import br.com.unificaerp.usuario.dto.UsuarioDto;
+import br.com.unificaerp.usuario.service.UsuarioLogadoService;
+import br.com.unificaerp.usuario.service.UsuarioService;
+import jakarta.validation.Valid;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+/*Cada controller tem um contexto, recebe dados do front-end, api, integração e etc*/
+@RestController
+@RequestMapping("/api/usuario")
+public class UsuarioController {
+
+    private final UsuarioService usuarioService;
+
+    private final UsuarioLogadoService usuarioLogadoService;
+
+    public UsuarioController(UsuarioService usuarioService, UsuarioLogadoService usuarioLogadoService) {
+        this.usuarioService = usuarioService;
+        this.usuarioLogadoService = usuarioLogadoService;
+    }
+
+
+    @PostMapping("/salvar")
+    public ResponseEntity<UsuarioDto> salvar(@RequestBody @Valid UsuarioDto usuarioDto){
+
+        UsuarioDto usuarioSalvo = usuarioService.salvar(usuarioDto);
+
+        return ResponseEntity.ok(usuarioSalvo);
+    }
+
+    @PostMapping("/atualizar")
+    public ResponseEntity<UsuarioDto> atualizar(@RequestBody @Valid UsuarioDto usuarioDto){
+
+        UsuarioDto usuarioSalvo = usuarioService.atualizar(usuarioDto);
+
+        return ResponseEntity.ok(usuarioSalvo);
+    }
+
+
+    /*Ponto de acesso (end-point): /api/usuario/login */
+    @PostMapping("/login")
+    public ResponseEntity<TokenDTO> login(@RequestBody  @Valid LoginDTO login){
+
+        TokenDTO tokebDto = usuarioService.login(login);
+
+        return ResponseEntity.ok(tokebDto);
+    }
+
+
+    @PostMapping("/alterarSenha")
+    public ResponseEntity<String> alterarSenha(@RequestBody  @Valid AlterarSenhaDTO dto){
+
+        usuarioService.alterarSenha(dto);
+
+        return ResponseEntity.ok("Senha alterada com sucesso!");
+    }
+
+
+    @GetMapping("/listar")
+    public ResponseEntity<List<UsuarioDto>> listarUsuarios(){
+
+        return ResponseEntity.ok(usuarioService.listar(usuarioLogadoService.getEmpresaIdLogada()));
+    }
+
+
+    @GetMapping("/buscarPorId/{id}")
+    public ResponseEntity<UsuarioDto> buscarPorId(@PathVariable(required = true, value = "id") Long idUser){
+        return ResponseEntity.ok(usuarioService.buscarPorIdDto(idUser, usuarioLogadoService.getEmpresaIdLogada()));
+    }
+
+
+    @DeleteMapping("/deletar/{id}")
+    public ResponseEntity<String> deletePorId(@PathVariable(required = true, value = "id") Long idUser){
+
+        usuarioService.deleteById(idUser, usuarioLogadoService.getEmpresaIdLogada());
+
+        return ResponseEntity.ok("Usuário deletado com sucesso!");
+    }
+
+
+    @GetMapping("/paginado")
+    public ResponseEntity<List<UsuarioDto>> listarPaginado(@RequestParam(defaultValue = "0") int page,
+                                                           @RequestParam(defaultValue = "10") int size,
+                                                           @RequestParam(defaultValue = "id") String sort,
+                                                           @RequestParam(defaultValue = "asc") String direction){
+
+        Sort.Direction sortDirection = direction.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort));
+
+        List<UsuarioDto> retorno = usuarioService.listarPaginadoDto(usuarioLogadoService.getEmpresaIdLogada(), pageable);
+
+        return ResponseEntity.ok(retorno);
+    }
+
+
+    @GetMapping("/buscar-por-nome")
+    public ResponseEntity<List<UsuarioDto>> buscarPorNome(@RequestParam(required = true) String nome){
+
+        List<UsuarioDto> dtos = usuarioService.buscaPorNomeDto(nome, usuarioLogadoService.getEmpresaIdLogada());
+
+        return ResponseEntity.ok(dtos);
+    }
+
+
+    @GetMapping("/buscar-por-login/{login}")
+    public ResponseEntity<UsuarioDto> buscarPorLogin(@PathVariable(required = true, value = "login") String login){
+
+        UsuarioDto dto = usuarioService.buscaPorLoginDto(login);
+
+        if (dto == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(dto);
+    }
+
+
+    @GetMapping("/total")
+    public ResponseEntity<Long> obterTotal(){
+
+        long total = usuarioService.total(usuarioLogadoService.getEmpresaIdLogada());
+
+        return ResponseEntity.ok(total);
+    }
+
+
+    @GetMapping("/existe/{id}")
+    public ResponseEntity<Boolean> verificarExistencia(@PathVariable(required = true, value = "id") Long idUser){
+
+        boolean existe = usuarioService.existsById(idUser, usuarioLogadoService.getEmpresaIdLogada());
+
+        return ResponseEntity.ok(existe);
+    }
+
+
+    @PostMapping("/buscar-por-ids")
+    public ResponseEntity<List<UsuarioDto>> buscarPorIds(@RequestBody List<Long> ids){
+
+        List<UsuarioDto> dtos = usuarioService.buscarPorIdsDto(ids, usuarioLogadoService.getEmpresaIdLogada());
+
+        return ResponseEntity.ok(dtos);
+    }
+
+
+    @DeleteMapping("/deletar-todos")
+    public ResponseEntity<String> deletarTodosUsuarios(){
+
+        long deletados = usuarioService.deleteAll(usuarioLogadoService.getEmpresaIdLogada());
+
+        return ResponseEntity.ok("Total de " + deletados + " usuários deletados com sucesso!");
+    }
+}

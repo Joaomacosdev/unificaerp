@@ -1,0 +1,108 @@
+package br.com.unificaerp.cliente_funcionario.service;
+
+import br.com.unificaerp.cliente_funcionario.model.ClienteFuncionario;
+import br.com.unificaerp.cliente_funcionario.repository.ClienteFuncionarioRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class ClienteFuncionarioService {
+
+    private final ClienteFuncionarioRepository clienteFuncionarioRepository;
+
+    public ClienteFuncionarioService(ClienteFuncionarioRepository clienteFuncionarioRepository) {
+        this.clienteFuncionarioRepository = clienteFuncionarioRepository;
+    }
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+
+
+    public ClienteFuncionario salvar(ClienteFuncionario clienteFuncionario ) {
+        return clienteFuncionarioRepository.saveAndFlush(clienteFuncionario);
+    }
+
+    public List<ClienteFuncionario> findAll(Long idEmpresa) {
+
+        return clienteFuncionarioRepository.findAll(idEmpresa);
+    }
+
+    public List<ClienteFuncionario> buscaPorNome(String nome, Long idEmpresa) {
+        return clienteFuncionarioRepository.buscaPorNome(nome, idEmpresa);
+    }
+
+    public boolean existePorNome(String nome, Long idEmpresa) {
+        return clienteFuncionarioRepository.existePorNome(nome, idEmpresa);
+    }
+
+    public boolean existePorNomeDiferenteId(Long id, String nome, Long idEmpresa) {
+        return clienteFuncionarioRepository.existePorNomeDiferenteId(id, nome, idEmpresa);
+    }
+
+    public void deleteById(Long id, Long idEmpresa) {
+        clienteFuncionarioRepository.deleteById(id, idEmpresa);
+    }
+
+    public long deleteAll(Long empresaID) {
+        return clienteFuncionarioRepository.deleteAll(empresaID);
+    }
+
+    public void deletarAllById(Iterable<Long> ids, Long empresaId) {
+        clienteFuncionarioRepository.deletarAllById(ids, empresaId);
+    }
+
+    public List<ClienteFuncionario> buscarPorIds(Iterable<Long> ids, Long empresaId) {
+        return clienteFuncionarioRepository.buscarPorIds(ids, empresaId);
+    }
+
+    public boolean existsById(Long id, Long empresaId) {
+        return clienteFuncionarioRepository.existsById(id, empresaId);
+    }
+
+    public List<ClienteFuncionario> listar(Long empresaId) {
+        return clienteFuncionarioRepository.listar(empresaId);
+    }
+
+    public Optional<ClienteFuncionario> buscarPorId(Long id, Long empresaId) {
+        return clienteFuncionarioRepository.buscarPorId(id, empresaId);
+    }
+
+    public long total(Long empresaId) {
+        return clienteFuncionarioRepository.total(empresaId);
+    }
+
+    public Page<ClienteFuncionario> listarPaginado(Long empresaId, Pageable pageable) {
+        return clienteFuncionarioRepository.listarPaginado(empresaId, pageable);
+    }
+
+
+    public ClienteFuncionario findByPessoa(Long idPessoa, Long idEmpresa) {
+        return clienteFuncionarioRepository.findByPessoa(idPessoa, idEmpresa);
+    }
+
+
+    public void removeUserClienteFuncionarioId(Long id, Long idEmpresa) {
+        clienteFuncionarioRepository.removeUserClienteFuncionarioId(id, idEmpresa);
+    }
+
+    // ====================dentro dos métodos do
+    // service===============================
+
+    // Verificar se está em uso
+    // Realizar um consulta com integração para saber se pode deletar
+    // Fazer copia e backup
+    // Fazer inumeras validações de regra de negocio
+    // Fazer validações
+    // Lançar exeções
+    // Escrever regras de negócio
+
+
+
+}

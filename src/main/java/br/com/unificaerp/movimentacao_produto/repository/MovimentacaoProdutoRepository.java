@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface MovimentacaoRepository extends UnificaRepository<MovimentacaoProduto, Long> {
+public interface MovimentacaoProdutoRepository extends UnificaRepository<MovimentacaoProduto, Long> {
 
     /*
      * Busca todas as movimentacoes de produtos da empresa passada como parametro

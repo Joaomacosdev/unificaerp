@@ -32,13 +32,13 @@ public class Pessoa {
     private String nomeFantasia;
     @Column(name = "insc_estadual", nullable = false, length = 14)
     private String inscEstadual;
-    @Column(name = "cnpj", nullable = false, length = 14)
+    @Column(name = "cnpj", nullable = false, length = 18)
     private String cnpj;
-    @Column(name = "cpf", nullable = false, length = 11)
+    @Column(name = "cpf", nullable = false, length = 14)
     private String cpf;
     @Column(name = "email", nullable = false, length = 150)
     private String email;
-    @Column(name = "telefone", nullable = false, length = 11)
+    @Column(name = "telefone", nullable = false, length = 15)
     private String telefone;
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_pessoa", nullable = false)
@@ -51,7 +51,7 @@ public class Pessoa {
 
     @Column(name = "observacao")
     private String observacao;
-    @Column(name = "cep", nullable = false, length = 8)
+    @Column(name = "cep", nullable = false, length = 9)
     private String cep;
     @Column(name = "logradouro", length = 100)
     private String logradouro;
@@ -69,7 +69,7 @@ public class Pessoa {
     /*Refere-se ao cadastro da empresa em multitanci*/
     @ManyToOne(fetch = FetchType.LAZY) /* LAZY -> Carrega a empresa quando tiver necessidade */
     @JoinColumn(name = "empresa_id",
-            nullable = false,
+            nullable = true,
             foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,
                     name = "empresa_fk"))
     private Empresa empresa;
@@ -99,6 +99,174 @@ public class Pessoa {
         this.cidade = cidade;
         this.pais = pais;
         this.complemento = complemento;
+        this.empresa = empresa;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public String getRazaoSocial() {
+        return razaoSocial;
+    }
+
+    public void setRazaoSocial(String razaoSocial) {
+        this.razaoSocial = razaoSocial;
+    }
+
+    public String getNomeFantasia() {
+        return nomeFantasia;
+    }
+
+    public void setNomeFantasia(String nomeFantasia) {
+        this.nomeFantasia = nomeFantasia;
+    }
+
+    public String getInscEstadual() {
+        return inscEstadual;
+    }
+
+    public void setInscEstadual(String inscEstadual) {
+        this.inscEstadual = inscEstadual;
+    }
+
+    public String getCnpj() {
+        return cnpj;
+    }
+
+    public void setCnpj(String cnpj) {
+        this.cnpj = cnpj;
+    }
+
+    public String getCpf() {
+        return cpf;
+    }
+
+    public void setCpf(String cpf) {
+        this.cpf = cpf;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getTelefone() {
+        return telefone;
+    }
+
+    public void setTelefone(String telefone) {
+        this.telefone = telefone;
+    }
+
+    public TipoPessoa getTipoPessoa() {
+        return tipoPessoa;
+    }
+
+    public void setTipoPessoa(TipoPessoa tipoPessoa) {
+        this.tipoPessoa = tipoPessoa;
+    }
+
+    public Boolean getAtivo() {
+        return ativo;
+    }
+
+    public void setAtivo(Boolean ativo) {
+        this.ativo = ativo;
+    }
+
+    public LocalDateTime getDataCadastro() {
+        return dataCadastro;
+    }
+
+    public void setDataCadastro(LocalDateTime dataCadastro) {
+        this.dataCadastro = dataCadastro;
+    }
+
+    public String getObservacao() {
+        return observacao;
+    }
+
+    public void setObservacao(String observacao) {
+        this.observacao = observacao;
+    }
+
+    public String getCep() {
+        return cep;
+    }
+
+    public void setCep(String cep) {
+        this.cep = cep;
+    }
+
+    public String getLogradouro() {
+        return logradouro;
+    }
+
+    public void setLogradouro(String logradouro) {
+        this.logradouro = logradouro;
+    }
+
+    public String getBairro() {
+        return bairro;
+    }
+
+    public void setBairro(String bairro) {
+        this.bairro = bairro;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
+
+    public String getCidade() {
+        return cidade;
+    }
+
+    public void setCidade(String cidade) {
+        this.cidade = cidade;
+    }
+
+    public String getPais() {
+        return pais;
+    }
+
+    public void setPais(String pais) {
+        this.pais = pais;
+    }
+
+    public String getComplemento() {
+        return complemento;
+    }
+
+    public void setComplemento(String complemento) {
+        this.complemento = complemento;
+    }
+
+    public Empresa getEmpresa() {
+        return empresa;
+    }
+
+    public void setEmpresa(Empresa empresa) {
         this.empresa = empresa;
     }
 

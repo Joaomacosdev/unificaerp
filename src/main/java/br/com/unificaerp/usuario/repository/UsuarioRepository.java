@@ -34,9 +34,22 @@ public interface UsuarioRepository extends UnificaRepository<Usuario, Long> {
 
     /*Retorna true se já existir usuário com o mesmo nome da pessoa para a mesma empresa, no caso não podemos deixar salvar para não ficar repetido no banco de dados*/
     @Query("select count(u.id) > 0 from Usuario u where u.empresa.id = :idEmpresa "
+            + " and unaccent(upper(trim(u.login))) "
+            + " = unaccent(upper(trim(:login)))")
+    boolean existePorLogin(@Param("login") String login, @Param("idEmpresa") Long idEmpresa);
+
+
+
+    @Query("select count(u.id) > 0 from Usuario u where u.empresa.id = :idEmpresa "
+            + " and u.clienteFuncionario.pessoa.id = :idPessoa")
+    boolean existePorPessoa(@Param("idPessoa") Long idPessoa, @Param("idEmpresa") Long idEmpresa);
+
+
+    @Query("select count(u.id) > 0 from Usuario u where u.empresa.id = :idEmpresa "
             + " and unaccent(upper(trim(u.clienteFuncionario.pessoa.nome))) "
             + " = unaccent(upper(trim(:nome)))")
     boolean existePorNome(@Param("nome") String nome, @Param("idEmpresa") Long idEmpresa);
+
 
     /*Verifica se existe outro usuário no banco de dados com o mesmo nome da pessoa mas ID diferentes da que está tentando atualizar*/
     @Query("select count(u.id) > 0 from Usuario u where u.empresa.id = :idEmpresa "
@@ -44,9 +57,35 @@ public interface UsuarioRepository extends UnificaRepository<Usuario, Long> {
             + " = unaccent(upper(trim(:nome))) and u.id <> :id")
     boolean existePorNomeDiferenteId(@Param("id") Long id, @Param("nome") String nome, @Param("idEmpresa") Long idEmpresa);
 
+    /*Verifica se existe outro usuário no banco de dados com o mesmo nome da pessoa mas ID diferentes da que está tentando atualizar*/
+    @Query("select count(u.id) > 0 from Usuario u where u.empresa.id = :idEmpresa "
+            + " and u.clienteFuncionario.pessoa.id = :pessoaId and u.id <> :usuarioId")
+    boolean existeOutroUsuarioComPessoa(@Param("pessoaId") Long pessoaId, @Param("usuarioId") Long usuarioId, @Param("idEmpresa") Long idEmpresa);
+
+
     /*Delete de um usuário de uma determinada empresa*/
     @Transactional
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("delete from Usuario u where u.empresa.id = :idEmpresa and u.id = :id")
     void deleteById(@Param("id") Long id, @Param("idEmpresa") Long idEmpresa);
+
+    @Transactional
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("update Usuario set tokenSessao = :token where id = :id and empresa.id = :idEmpresa")
+    void updateTokenSessaoLogin(@Param("id") Long id, @Param("token") String token, @Param("idEmpresa") Long idEmpresa);
+
+    @Query(value ="""
+			SELECT CASE
+	           WHEN COUNT(*) > 0 THEN TRUE
+	           ELSE FALSE
+	       END
+			FROM usuarios u
+			WHERE u.token_sessao = :token
+			  AND u.empresa_id = :idEmpresa
+			  AND u.id = :idUsuario;
+		   """, nativeQuery = true)
+    boolean existsByTokenParaUser(@Param("token") String token,
+                                  @Param("idUsuario") Long idUsuario,
+                                  @Param("idEmpresa") Long idEmpresa);
+
 }

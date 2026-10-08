@@ -20,6 +20,10 @@ public interface ClienteFuncionarioRepository extends UnificaRepository<ClienteF
     List<ClienteFuncionario> findAll(@Param("idEmpresa") Long idEmpresa);
 
 
+    @Query("select c from ClienteFuncionario c where c.pessoa.id = :idPessoa and c.empresa.id = :idEmpresa")
+    ClienteFuncionario findByPessoa(@Param("idPessoa") Long idPessoa, @Param("idEmpresa") Long idEmpresa);
+
+
     /*Busca por partes ou nome completo da pessoa relacionada e da empresa passada por parametro*/
     @Query("select c from ClienteFuncionario c where c.empresa.id = :idEmpresa "
             + " and unaccent(upper(trim(c.pessoa.nome))) "
@@ -44,4 +48,9 @@ public interface ClienteFuncionarioRepository extends UnificaRepository<ClienteF
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("delete from ClienteFuncionario c where c.empresa.id = :idEmpresa and c.id = :id")
     void deleteById(@Param("id") Long id, @Param("idEmpresa") Long idEmpresa);
+
+    @Transactional
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query(value = "update cliente_funcionarios set usuario_id = null where empresa_id = :idEmpresa and usuario_id = :id", nativeQuery = true)
+    void removeUserClienteFuncionarioId(@Param("id") Long id, @Param("idEmpresa") Long idEmpresa);
 }
