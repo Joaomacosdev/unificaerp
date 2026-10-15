@@ -1,13 +1,21 @@
 package br.com.unificaerp.menssagem.service;
 
+import br.com.unificaerp.chamado.model.Chamado;
+import br.com.unificaerp.chamado.repository.ChamadoRepository;
+import br.com.unificaerp.infra.exception.MsgApiException;
 import br.com.unificaerp.menssagem.model.Mensagem;
 import br.com.unificaerp.menssagem.repository.MensagemRepository;
+import br.com.unificaerp.usuario.model.Usuario;
+import br.com.unificaerp.usuario.repository.UsuarioRepository;
+import br.com.unificaerp.usuario.service.UsuarioLogadoService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,15 +24,76 @@ public class MensagemService {
 
     private final MensagemRepository mensagemRepository;
 
-    public MensagemService(MensagemRepository mensagemRepository) {
-        this.mensagemRepository = mensagemRepository;
-    }
-
     /*Posso escrever query customizadas e dinâmicas, mais complexas do que no Repository*/
     @PersistenceContext
     private EntityManager entityManager;
 
+    private final ChamadoRepository chamadoRepository;
 
+    private final UsuarioRepository usuarioRepository;
+
+    private final UsuarioLogadoService usuarioLogadoService;
+
+
+
+
+    public MensagemService(MensagemRepository mensagemRepository, ChamadoRepository chamadoRepository, UsuarioRepository usuarioRepository, UsuarioLogadoService usuarioLogadoService) {
+        this.mensagemRepository = mensagemRepository;
+        this.chamadoRepository = chamadoRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.usuarioLogadoService = usuarioLogadoService;
+    }
+
+
+
+
+
+    public Mensagem salvar(Mensagem mensagem) {
+        Long empresaId = usuarioLogadoService.getEmpresaIdLogada();
+
+        mensagem.setChamado(validarChamado(mensagem.getChamado(), empresaId));
+        mensagem.setAtendente(validarUsuario(mensagem.getAtendente(), empresaId));
+        mensagem.setCliente(validarUsuario(mensagem.getCliente(), empresaId));
+        mensagem.setDataEnvio(LocalDate.now());
+        mensagem.setEmpresa(usuarioLogadoService.getEmpresaLogada());
+        return mensagemRepository.saveAndFlush(mensagem);
+    }
+
+    public Mensagem atualizar(Mensagem mensagem) {
+        if (mensagem.getId() == null) {
+            throw new MsgApiException("Id da mensagem não informado para atualizar.");
+        }
+
+        Long empresaId = usuarioLogadoService.getEmpresaIdLogada();
+        Mensagem existente = mensagemRepository.buscarPorId(mensagem.getId(), empresaId)
+                .orElseThrow(() -> new MsgApiException("Mensagem não encontrada para a empresa logada."));
+
+        existente.setConteudo(mensagem.getConteudo());
+        existente.setArquivo(mensagem.getArquivo());
+        existente.setLida(mensagem.getLida());
+        existente.setChamado(validarChamado(mensagem.getChamado(), empresaId));
+        existente.setAtendente(validarUsuario(mensagem.getAtendente(), empresaId));
+        existente.setCliente(validarUsuario(mensagem.getCliente(), empresaId));
+        return mensagemRepository.saveAndFlush(existente);
+    }
+
+    private Chamado validarChamado(Chamado chamado, Long empresaId) {
+        if (chamado == null || chamado.getId() == null) {
+            throw new MsgApiException("Chamado deve ser informado para a mensagem.");
+        }
+
+        return chamadoRepository.buscarPorId(chamado.getId(), empresaId)
+                .orElseThrow(() -> new MsgApiException("Chamado não encontrado para a empresa logada."));
+    }
+
+    private Usuario validarUsuario(Usuario usuario, Long empresaId) {
+        if (usuario == null || usuario.getId() == null) {
+            throw new MsgApiException("Cliente e atendente devem ser informados para a mensagem.");
+        }
+
+        return usuarioRepository.buscarPorId(usuario.getId(), empresaId)
+                .orElseThrow(() -> new MsgApiException("Usuário relacionado não encontrado para a empresa logada."));
+    }
 
     public List<Mensagem> findAll(Long idEmpresa) {
 
@@ -44,14 +113,38 @@ public class MensagemService {
     }
 
     public void deleteById(Long id, Long idEmpresa) {
+        if (!mensagemRepository.existsById(id, idEmpresa)) {
+            throw new MsgApiException("Mensagem não encontrada ou já foi deletada.");
+        }
+
         mensagemRepository.deleteById(id, idEmpresa);
     }
 
     public long deleteAll(Long empresaID) {
+        if (mensagemRepository.total(empresaID) == 0) {
+            throw new MsgApiException("Nenhuma mensagem encontrada para deletar ou todas já foram deletadas.");
+        }
+
         return mensagemRepository.deleteAll(empresaID);
     }
 
-    void deletarAllById(Iterable<Long> ids, Long empresaId) {
+    public void deletarAllById(Iterable<Long> ids, Long empresaId) {
+        List<Long> encontrados = mensagemRepository.buscarPorIds(ids, empresaId).stream().map(Mensagem::getId).toList();
+        List<Long> naoEncontrados = new ArrayList<>();
+        ids.forEach(id -> {
+            if (!encontrados.contains(id)) {
+                naoEncontrados.add(id);
+            }
+        });
+
+        if (encontrados.isEmpty() && naoEncontrados.isEmpty()) {
+            throw new MsgApiException("Nenhum registro informado para deletar.");
+        }
+
+        if (!naoEncontrados.isEmpty()) {
+            throw new MsgApiException("Mensagens não encontradas ou já deletadas: " + naoEncontrados);
+        }
+
         mensagemRepository.deletarAllById(ids, empresaId);
     }
 
@@ -59,7 +152,7 @@ public class MensagemService {
         return mensagemRepository.buscarPorIds(ids, empresaId);
     }
 
-    boolean existsById(Long id, Long empresaId) {
+    public boolean existsById(Long id, Long empresaId) {
         return mensagemRepository.existsById(id, empresaId);
     }
 
@@ -102,10 +195,18 @@ public class MensagemService {
     }
 
     public void deleteAllByChamado(Long idChamado, Long idEmpresa) {
+        if (mensagemRepository.countByChamado(idChamado, idEmpresa) == 0) {
+            throw new MsgApiException("Nenhuma mensagem encontrada para o chamado ou todas já foram deletadas.");
+        }
+
         mensagemRepository.deleteAllByChamado(idChamado, idEmpresa);
     }
 
     public void deleteByIdAndChamado(Long id, Long idChamado, Long idEmpresa) {
+        if (!mensagemRepository.buscarPorId(id, idEmpresa).filter(mensagem -> mensagem.getChamado() != null && mensagem.getChamado().getId().equals(idChamado)).isPresent()) {
+            throw new MsgApiException("Mensagem não encontrada ou já foi deletada.");
+        }
+
         mensagemRepository.deleteByIdAndChamado(id, idChamado, idEmpresa);
     }
 

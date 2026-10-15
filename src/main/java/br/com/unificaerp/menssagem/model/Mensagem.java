@@ -4,11 +4,15 @@ import br.com.unificaerp.chamado.model.Chamado;
 import br.com.unificaerp.empresa.model.Empresa;
 import br.com.unificaerp.usuario.model.Usuario;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
 
 @Entity
 @Table(name = "menssagens")
+@Getter
+@Setter
 @SequenceGenerator(name = "seq_menssagem", sequenceName = "seq_menssagem", allocationSize = 1, initialValue = 1)
 public class Mensagem {
 
