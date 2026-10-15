@@ -3,6 +3,8 @@ package br.com.unificaerp.plano.model;
 import br.com.unificaerp.empresa.model.Empresa;
 import br.com.unificaerp.plano.model.enums.TipoPlano;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +12,8 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "planos")
+@Getter
+@Setter
 @SequenceGenerator(name = "seq_plano", sequenceName = "seq_plano", allocationSize = 1, initialValue = 1)
 public class Plano {
 
