@@ -5,12 +5,16 @@ import br.com.unificaerp.pedido.model.enums.FormaPagamento;
 import br.com.unificaerp.pedido.model.enums.StatusPedido;
 import br.com.unificaerp.usuario.model.Usuario;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "pedidos")
+@Getter
+@Setter
 @SequenceGenerator(name = "seq_pedido", sequenceName = "seq_pedido", allocationSize = 1, initialValue = 1)
 public class Pedido {
 

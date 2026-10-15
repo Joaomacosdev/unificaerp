@@ -4,8 +4,12 @@ import br.com.unificaerp.categoria.model.Categoria;
 import br.com.unificaerp.empresa.model.Empresa;
 import br.com.unificaerp.produto.model.enums.UnidadeMedida;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "produto", uniqueConstraints = {
         @UniqueConstraint(name = "uk_produto_sku", columnNames = "sku"),
         @UniqueConstraint(name = "uk_produto_empresa", columnNames = "empresa")

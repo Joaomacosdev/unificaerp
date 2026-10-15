@@ -4,11 +4,15 @@ import br.com.unificaerp.empresa.model.Empresa;
 import br.com.unificaerp.pedido.model.Pedido;
 import br.com.unificaerp.produto.model.Produto;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 
 @Entity
 @Table(name = "item_pedido")
+@Getter
+@Setter
 @SequenceGenerator(name = "seq_item_pedido", sequenceName = "seq_item_pedido", allocationSize = 1, initialValue = 1)
 public class ItemPedido {
 
