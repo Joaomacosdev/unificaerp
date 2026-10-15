@@ -8,6 +8,8 @@ import br.com.unificaerp.empresa.model.Empresa;
 import br.com.unificaerp.menssagem.model.Mensagem;
 import br.com.unificaerp.usuario.model.Usuario;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -15,6 +17,8 @@ import java.util.List;
 
 @Entity
 @Table(name = "chamados")
+@Getter
+@Setter
 @SequenceGenerator(name = "seq_chamado", sequenceName = "seq_chamado", allocationSize = 1, initialValue = 1)
 public class Chamado {
 

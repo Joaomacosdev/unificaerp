@@ -44,7 +44,6 @@ public class ClienteFuncionario {
     @JoinColumn(name = "empresa_id", nullable = false)
     private Empresa empresa;
 
-    @JsonManagedReference
     @OneToOne
     @JoinColumn(name = "pessoa_id", nullable = false, unique = true)
     private Pessoa pessoa;

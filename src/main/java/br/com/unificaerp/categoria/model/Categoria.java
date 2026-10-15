@@ -3,6 +3,7 @@ package br.com.unificaerp.categoria.model;
 import br.com.unificaerp.empresa.model.Empresa;
 import br.com.unificaerp.produto.model.Produto;
 import jakarta.persistence.*;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.List;
 @Entity
 @Table(name = "categoria")
 @SequenceGenerator(name = "seq_categoria", sequenceName = "seq_categoria", allocationSize = 1, initialValue = 1)
+@Setter
 public class Categoria {
 
 

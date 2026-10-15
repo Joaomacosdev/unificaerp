@@ -45,4 +45,5 @@ public interface CategoriaRepository extends UnificaRepository<Categoria, Long> 
     @Query("delete from Categoria c where c.empresa.id = :idEmpresa and c.id = :id")
     void deleteById(@Param("id") Long id, @Param("idEmpresa") Long idEmpresa);
 
+
 }

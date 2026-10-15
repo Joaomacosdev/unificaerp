@@ -44,7 +44,7 @@ public class JwtFilter extends OncePerRequestFilter {
             String header = request.getHeader("Authorization");
 
             /*Se não tem token o acesso pode ser pubico e será valido pelo Spring Security*/
-            if(header == null || !header.startsWith("Bearer ")) {
+            if (header == null || !header.startsWith("Bearer ")) {
                 filterChain.doFilter(request, response);
                 return;
             }
@@ -59,7 +59,7 @@ public class JwtFilter extends OncePerRequestFilter {
             }
 
             /*Token pode esar inválido mas o user pode acessar a parte de login*/
-            if(!jwtService.validarToken(token)) {
+            if (!jwtService.validarToken(token)) {
                 filterChain.doFilter(request, response);
                 return;
             }
@@ -75,7 +75,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 UserDetails userDetails = userService.loadUserByUsername(login);
 
                 /*Crie o objeto pra carregar o user*/
-                UsuarioAutenticado principal = new UsuarioAutenticado((Usuario)userDetails);
+                UsuarioAutenticado principal = new UsuarioAutenticado((Usuario) userDetails);
 
                 /*Cria objeto de autenticação*/
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
@@ -90,7 +90,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
             }
 
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             SecurityContextHolder.clearContext();
             throw new MsgApiException("Erro ao validar JWT do Usuário no Sistema.");
