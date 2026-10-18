@@ -50,4 +50,5 @@ public interface RoleRepository extends UnificaRepository<Role, Long> {
 
     @Query("select count(r.id) > 0 from Role r where r.id = :id ")
     boolean existePorId(@Param("id") Long id);
+
 }

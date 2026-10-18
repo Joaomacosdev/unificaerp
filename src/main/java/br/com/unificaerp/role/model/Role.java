@@ -2,6 +2,7 @@ package br.com.unificaerp.role.model;
 
 import br.com.unificaerp.usuario.model.Usuario;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
@@ -19,36 +20,24 @@ import java.util.Set;
 @Getter
 public class Role implements GrantedAuthority {
 
+    private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_role")
     private Long id;
-    @Column(nullable = false, length = 50)
+
+    @NotBlank(message = "Acesso deve ser informado")
+    @Column(nullable = false)
     private String acesso;
 
-
-
-    public Role() {
-    }
-
-    public Role(String acesso) {
-        this.acesso = acesso;
-    }
-
+    /*Nome do acesso*/
     @Override
     public @Nullable String getAuthority() {
-        return "";
+        return this.acesso;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        Role role = (Role) o;
-        return Objects.equals(id, role.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(id);
+    public void setAcesso(String acesso) {
+        this.acesso = acesso != null ? acesso.toUpperCase(): "";
     }
 
 

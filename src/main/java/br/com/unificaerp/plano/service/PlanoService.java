@@ -1,5 +1,6 @@
 package br.com.unificaerp.plano.service;
 
+import br.com.unificaerp.infra.exception.MsgApiException;
 import br.com.unificaerp.plano.model.Plano;
 import br.com.unificaerp.plano.repository.PlanoRepository;
 import jakarta.persistence.EntityManager;
@@ -7,21 +8,52 @@ import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PlanoService {
 
     private final PlanoRepository planoRepository;
 
-    public PlanoService(PlanoRepository planoRepository) {
-        this.planoRepository = planoRepository;
-    }
-
     /*Posso escrever query customizadas e dinâmicas, mais complexas do que no Repository*/
     @PersistenceContext
     private EntityManager entityManager;
 
+    public PlanoService(PlanoRepository planoRepository) {
+        this.planoRepository = planoRepository;
+    }
 
+
+
+
+
+    public Plano salvar(Plano plano) {
+        if (planoRepository.existePorNome(plano.getNome())) {
+            throw new MsgApiException("Já existe um plano com o mesmo nome: " + plano.getNome());
+        }
+
+        return planoRepository.save(plano);
+    }
+
+    public Plano atualizar(Plano plano) {
+        if (plano.getId() == null) {
+            throw new MsgApiException("Id do plano deve ser informado para edição.");
+        }
+
+        if (!planoRepository.findById(plano.getId()).isPresent()) {
+            throw new MsgApiException("Plano com id: " + plano.getId() + " não foi encontrado.");
+        }
+
+        if (planoRepository.existePorNomeDiferenteId(plano.getId(), plano.getNome())) {
+            throw new MsgApiException("Já existe outro plano com o mesmo nome: " + plano.getNome());
+        }
+
+        return planoRepository.save(plano);
+    }
+
+    public Optional<Plano> buscarPorId(Long id) {
+        return planoRepository.findById(id);
+    }
 
     public List<Plano> findAll() {
 
@@ -41,6 +73,10 @@ public class PlanoService {
     }
 
     public void deleteById(Long id) {
+        if (!planoRepository.findById(id).isPresent()) {
+            throw new MsgApiException("Plano não encontrado ou já foi deletado.");
+        }
+
         planoRepository.deleteById(id);
     }
 
@@ -56,5 +92,4 @@ public class PlanoService {
     // Fazer validações
     // Lançar exeções
     // Escrever regras de negócio
-
 }
