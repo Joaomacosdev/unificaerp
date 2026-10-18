@@ -1,14 +1,17 @@
 package br.com.unificaerp.pessoa.service;
 
 
+import br.com.unificaerp.infra.exception.MsgApiException;
 import br.com.unificaerp.pessoa.model.Pessoa;
 import br.com.unificaerp.pessoa.repository.PessoaRepository;
+import br.com.unificaerp.usuario.service.UsuarioLogadoService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,14 +20,48 @@ public class PessoaService {
 
     private final PessoaRepository pessoaRepository;
 
-    public PessoaService(PessoaRepository pessoaRepository) {
-        this.pessoaRepository = pessoaRepository;
-    }
-
     @PersistenceContext
     private EntityManager entityManager;
 
+    private final UsuarioLogadoService usuarioLogadoService;
 
+
+    public PessoaService(PessoaRepository pessoaRepository, UsuarioLogadoService usuarioLogadoService) {
+        this.pessoaRepository = pessoaRepository;
+        this.usuarioLogadoService = usuarioLogadoService;
+    }
+
+
+
+
+
+    public Pessoa salvar(Pessoa pessoa) {
+        Long empresaId = usuarioLogadoService.getEmpresaIdLogada();
+        if (pessoaRepository.existePorNome(pessoa.getNome(), empresaId)) {
+            throw new MsgApiException("Já existe uma pessoa com o mesmo nome para a empresa logada.");
+        }
+
+        pessoa.setEmpresa(usuarioLogadoService.getEmpresaLogada());
+        return pessoaRepository.save(pessoa);
+    }
+
+    public Pessoa atualizar(Pessoa pessoa) {
+        if (pessoa.getId() == null) {
+            throw new MsgApiException("Id da pessoa não informado para atualizar.");
+        }
+
+        Long empresaId = usuarioLogadoService.getEmpresaIdLogada();
+        if (!pessoaRepository.existsById(pessoa.getId(), empresaId)) {
+            throw new MsgApiException("Pessoa não encontrada para a empresa logada.");
+        }
+
+        if (pessoaRepository.existePorNomeDiferenteId(pessoa.getId(), pessoa.getNome(), empresaId)) {
+            throw new MsgApiException("Já existe outra pessoa com o mesmo nome para a empresa logada.");
+        }
+
+        pessoa.setEmpresa(usuarioLogadoService.getEmpresaLogada());
+        return pessoaRepository.save(pessoa);
+    }
 
     public List<Pessoa> findAll(Long idEmpresa) {
 
@@ -44,14 +81,38 @@ public class PessoaService {
     }
 
     public void deleteById(Long id, Long idEmpresa) {
+        if (!pessoaRepository.existsById(id, idEmpresa)) {
+            throw new MsgApiException("Pessoa não encontrada ou já foi deletada.");
+        }
+
         pessoaRepository.deleteById(id, idEmpresa);
     }
 
     public long deleteAll(Long empresaID) {
+        if (pessoaRepository.total(empresaID) == 0) {
+            throw new MsgApiException("Nenhuma pessoa encontrada para deletar ou todas já foram deletadas.");
+        }
+
         return pessoaRepository.deleteAll(empresaID);
     }
 
-    void deletarAllById(Iterable<Long> ids, Long empresaId) {
+    public void deletarAllById(Iterable<Long> ids, Long empresaId) {
+        List<Long> encontrados = pessoaRepository.buscarPorIds(ids, empresaId).stream().map(Pessoa::getId).toList();
+        List<Long> naoEncontrados = new ArrayList<>();
+        ids.forEach(id -> {
+            if (!encontrados.contains(id)) {
+                naoEncontrados.add(id);
+            }
+        });
+
+        if (encontrados.isEmpty() && naoEncontrados.isEmpty()) {
+            throw new MsgApiException("Nenhum registro informado para deletar.");
+        }
+
+        if (!naoEncontrados.isEmpty()) {
+            throw new MsgApiException("Pessoas não encontradas ou já deletadas: " + naoEncontrados);
+        }
+
         pessoaRepository.deletarAllById(ids, empresaId);
     }
 
@@ -59,7 +120,7 @@ public class PessoaService {
         return pessoaRepository.buscarPorIds(ids, empresaId);
     }
 
-    boolean existsById(Long id, Long empresaId) {
+    public boolean existsById(Long id, Long empresaId) {
         return pessoaRepository.existsById(id, empresaId);
     }
 
