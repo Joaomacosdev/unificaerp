@@ -1,14 +1,18 @@
 package br.com.unificaerp.pedido.model;
 
 import br.com.unificaerp.empresa.model.Empresa;
+import br.com.unificaerp.pedido.enums.TipoPedido;
 import br.com.unificaerp.pedido.model.enums.FormaPagamento;
 import br.com.unificaerp.pedido.model.enums.StatusPedido;
 import br.com.unificaerp.usuario.model.Usuario;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -18,53 +22,62 @@ import java.time.LocalDateTime;
 @SequenceGenerator(name = "seq_pedido", sequenceName = "seq_pedido", allocationSize = 1, initialValue = 1)
 public class Pedido {
 
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_pedido")
     private Long id;
 
-    @Column(name = "numero_pedido", nullable = false, unique = true, length = 30)
+    @NotBlank(message = "Inform o número do pedido")
+    @Column(nullable = false)
     private String numeroPedido;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 30)
-    private StatusPedido status;
 
+    @NotNull(message = "Informa o status do pedido")
     @Enumerated(EnumType.STRING)
-    @Column(name = "forma_pagamento", nullable = false, length = 30)
+    private StatusPedido statusPedido;
+
+    @NotNull(message = "Informe a forma de pagamento")
+    @Enumerated(EnumType.STRING)
     private FormaPagamento formaPagamento;
 
-    @Column(name = "data_pedido", nullable = false)
-    private LocalDateTime dataPedido;
-    @Column(name = "data_pagamento")
-    private LocalDateTime dataPagamento;
-    @Column(name = "data_cancelamento")
-    private LocalDateTime dataCancelamento;
-    @Column(name = "sub_total", nullable = false, precision = 15, scale = 2)
+    @NotNull(message = "Informe o tipo do pedido")
+    @Enumerated(EnumType.STRING)
+    private TipoPedido tipoPedido;
+
+    @NotNull(message = "Informe a forma de pagamento")
+    @Column(nullable = false)
+    private LocalDate dataPedido;
+
+    private LocalDate dataPagamento;
+    private LocalDate dataCancelamento;
+
     private BigDecimal subTotal = BigDecimal.ZERO;
-    @Column(name = "desconto", nullable = false, precision = 15, scale = 2)
     private BigDecimal desconto = BigDecimal.ZERO;
-    @Column(name = "frete", nullable = false, precision = 15, scale = 2)
     private BigDecimal frete = BigDecimal.ZERO;
-    @Column(name = "taxa", nullable = false, precision = 15, scale = 2)
-    private BigDecimal taxa = BigDecimal.ZERO;
-    @Column(name = "total", nullable = false, precision = 15, scale = 2)
+    private BigDecimal taxas = BigDecimal.ZERO;
     private BigDecimal total = BigDecimal.ZERO;
-    @Column(name = "observacao", length = 500)
+
     private String observacao;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "cliente_id", nullable = false,
-            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, name = "cliente_fk"))
-    private Usuario cliente;
-
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vendedor_id", nullable = false,
-            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, name = "vendedor_fk"))
+            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,
+                    name = "vendedor_fk"))
     private Usuario vendedor;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "empresa_id", nullable = false,
-            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, name = "empresa_fk"))
+    @JoinColumn(name = "cliente_id", nullable = false,
+            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,
+                    name = "cliente_fk"))
+    private Usuario cliente;
+
+
+    @NotNull(message = "Empresa deve ser informada corretamente")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "empresa_id",
+            nullable = false,
+            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,
+                    name = "empresa_fk"))
     private Empresa empresa;
 
 
