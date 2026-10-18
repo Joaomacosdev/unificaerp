@@ -1,6 +1,7 @@
-package br.com.unificaerp.usuario.model;
+package br.com.unificaerp.role_usuario.model;
 
 import br.com.unificaerp.role.model.Role;
+import br.com.unificaerp.usuario.model.Usuario;
 import jakarta.persistence.*;
 import lombok.Data;
 
