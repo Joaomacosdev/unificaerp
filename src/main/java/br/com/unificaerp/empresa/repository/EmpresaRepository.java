@@ -14,7 +14,6 @@ import java.util.List;
 @IgnoreEmpresaId
 @Repository
 public interface EmpresaRepository extends UnificaRepository<Empresa, Long> {
-
     @Query("select c from Empresa c ")
     List<Empresa> findAll();
 
@@ -23,7 +22,7 @@ public interface EmpresaRepository extends UnificaRepository<Empresa, Long> {
 
     /*Busca as empresas por partes ou nome (pessoa.nome) completo passado por parametro*/
     @Query("select e from Empresa e where unaccent(upper(trim(e.pessoa.nome))) "
-            + " like unaccent(upper(concat('%', trim(:nome) ,'%')))")
+            + " like unaccent(upper(concat('%', trim(:nome) ,'%')))" )
     List<Empresa> buscaPorNome(@Param("nome") String nome);
 
     /*Retorna true se já existir empresa com o mesmo nome (pessoa.nome), para evitar duplicidade*/
@@ -31,6 +30,10 @@ public interface EmpresaRepository extends UnificaRepository<Empresa, Long> {
             + " where unaccent(upper(trim(e.pessoa.nome))) "
             + " = unaccent(upper(trim(:nome)))")
     boolean existePorNome(@Param("nome") String nome);
+
+    @Query("select count(e.id) > 0 from Empresa e "
+            + " where e.pessoa.id = :idPessoa ")
+    boolean existePorPessoa(@Param("idPessoa") Long idPessoa);
 
     /*Verifica se existe outra empresa no banco de dados com o mesmo nome (pessoa.nome) mas ID diferentes da que está tentando atualizar*/
     @Query("select count(e.id) > 0 from Empresa e "

@@ -15,7 +15,6 @@ import java.util.Optional;
 @IgnoreEmpresaId
 @Repository
 public interface RoleUsuarioRepository extends UnificaRepository<RoleUsuario, Long> {
-
     /*
      * Busca todos os roles do usuário passado como parametro da empresa
      */
@@ -59,4 +58,5 @@ public interface RoleUsuarioRepository extends UnificaRepository<RoleUsuario, Lo
     @Transactional
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("delete from RoleUsuario r where r.usuario.id = :idUsuario and r.usuario.empresa.id = :idEmpresa and r.acesso.id = :idRole")
-    void deleteByUsuarioAndRole(@Param("idUsuario") Long idUsuario, @Param("idRole") Long idRole, @Param("idEmpresa") Long idEmpresa);}
+    void deleteByUsuarioAndRole(@Param("idUsuario") Long idUsuario, @Param("idRole") Long idRole, @Param("idEmpresa") Long idEmpresa);
+}

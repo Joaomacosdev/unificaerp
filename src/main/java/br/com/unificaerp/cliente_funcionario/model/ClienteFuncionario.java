@@ -48,18 +48,6 @@ public class ClienteFuncionario {
     @JoinColumn(name = "pessoa_id", nullable = false, unique = true)
     private Pessoa pessoa;
 
-    public ClienteFuncionario() {
-    }
-
-
-    public void associarEmpresa(Empresa empresa) {
-        this.empresa = empresa;
-    }
-
-    public void desassociarEmpresa(){
-        this.empresa = null;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;

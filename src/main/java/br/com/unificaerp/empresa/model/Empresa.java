@@ -1,26 +1,22 @@
 package br.com.unificaerp.empresa.model;
 
-import br.com.unificaerp.cliente_funcionario.model.ClienteFuncionario;
 import br.com.unificaerp.pessoa.model.Pessoa;
 import br.com.unificaerp.plano.model.Plano;
-import br.com.unificaerp.produto.model.Produto;
-import br.com.unificaerp.usuario.model.Usuario;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
+import lombok.Data;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 
 @JsonIdentityInfo(
         generator = ObjectIdGenerators.PropertyGenerator.class,
         property = "id"
 )
 @JsonIdentityReference(alwaysAsId = true)
+@Data
 @Entity
 @Table(name = "empresas", uniqueConstraints =
 @UniqueConstraint(name = "uk_empresa_pessoa_id", columnNames = "pessoa_id")
@@ -57,176 +53,6 @@ public class Empresa {
 
 
 
-    @OneToMany(mappedBy = "empresa", fetch = FetchType.LAZY)
-    private List<Produto> produtos = new ArrayList<>();
 
-    @OneToMany(mappedBy = "empresa", fetch = FetchType.LAZY)
-    private List<ClienteFuncionario> clienteFuncionarios = new ArrayList<>();
 
-    @OneToMany(mappedBy = "empresa", fetch = FetchType.LAZY)
-    private List<Usuario> usuarios = new ArrayList<>();
-
-    public Empresa() {
-    }
-
-    public Empresa(Integer totalUsuario, Integer totalCliente, Boolean planoAtivo, Boolean bloqueio, String logoMarca, LocalDate vigenciaPlano, Pessoa pessoa, Plano plano, List<ClienteFuncionario> clienteFuncionarios, List<Usuario> usuarios) {
-        this.totalUsuario = totalUsuario;
-        this.totalCliente = totalCliente;
-        this.planoAtivo = planoAtivo;
-        this.bloqueio = bloqueio;
-        this.logoMarca = logoMarca;
-        this.vigenciaPlano = vigenciaPlano;
-        this.pessoa = pessoa;
-        this.plano = plano;
-        this.clienteFuncionarios = clienteFuncionarios;
-        this.usuarios = usuarios;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public void adicionarClienteFuncionario(ClienteFuncionario clienteFuncionario) {
-        clienteFuncionarios.add(clienteFuncionario);
-        clienteFuncionario.associarEmpresa(this);
-    }
-
-    public void removerClienteFuncionario(ClienteFuncionario clienteFuncionario) {
-        clienteFuncionarios.remove(clienteFuncionario);
-        clienteFuncionario.desassociarEmpresa();
-    }
-
-    public void adicionarUsuario(Usuario usuario) {
-        usuarios.add(usuario);
-        usuario.associarEmpresa(this);
-    }
-
-    public void removerUsuario(Usuario usuario) {
-        usuarios.remove(usuario);
-        usuario.desassociarUsuario();
-    }
-
-    public void associarPlano(Plano plano) {
-        this.plano = plano;
-    }
-
-    public void desassociarPlano() {
-        this.plano = null;
-    }
-
-    public Integer getTotalUsuario() {
-        return totalUsuario;
-    }
-
-    public void setTotalUsuario(Integer totalUsuario) {
-        this.totalUsuario = totalUsuario;
-    }
-
-    public Integer getTotalCliente() {
-        return totalCliente;
-    }
-
-    public void setTotalCliente(Integer totalCliente) {
-        this.totalCliente = totalCliente;
-    }
-
-    public Boolean getPlanoAtivo() {
-        return planoAtivo;
-    }
-
-    public void setPlanoAtivo(Boolean planoAtivo) {
-        this.planoAtivo = planoAtivo;
-    }
-
-    public Boolean getBloqueio() {
-        return bloqueio;
-    }
-
-    public void setBloqueio(Boolean bloqueio) {
-        this.bloqueio = bloqueio;
-    }
-
-    public String getLogoMarca() {
-        return logoMarca;
-    }
-
-    public void setLogoMarca(String logoMarca) {
-        this.logoMarca = logoMarca;
-    }
-
-    public LocalDate getVigenciaPlano() {
-        return vigenciaPlano;
-    }
-
-    public void setVigenciaPlano(LocalDate vigenciaPlano) {
-        this.vigenciaPlano = vigenciaPlano;
-    }
-
-    public Pessoa getPessoa() {
-        return pessoa;
-    }
-
-    public void setPessoa(Pessoa pessoa) {
-        this.pessoa = pessoa;
-    }
-
-    public Plano getPlano() {
-        return plano;
-    }
-
-    public void setPlano(Plano plano) {
-        this.plano = plano;
-    }
-
-    public List<Produto> getProdutos() {
-        return produtos;
-    }
-
-    public void setProdutos(List<Produto> produtos) {
-        this.produtos = produtos;
-    }
-
-    public List<ClienteFuncionario> getClienteFuncionarios() {
-        return clienteFuncionarios;
-    }
-
-    public void setClienteFuncionarios(List<ClienteFuncionario> clienteFuncionarios) {
-        this.clienteFuncionarios = clienteFuncionarios;
-    }
-
-    public List<Usuario> getUsuarios() {
-        return usuarios;
-    }
-
-    public void setUsuarios(List<Usuario> usuarios) {
-        this.usuarios = usuarios;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        Empresa empresa = (Empresa) o;
-        return Objects.equals(id, empresa.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(id);
-    }
-
-    @Override
-    public String toString() {
-        return "Empresa{" +
-                "totalUsuario=" + totalUsuario +
-                ", totalCliente=" + totalCliente +
-                ", planoAtivo=" + planoAtivo +
-                ", bloqueio=" + bloqueio +
-                ", logoMarca='" + logoMarca + '\'' +
-                ", vigenciaPlano=" + vigenciaPlano +
-                '}';
-    }
 }

@@ -55,15 +55,6 @@ public class Plano {
         this.empresas = empresas;
     }
 
-    public void adicionarEmpresa(Empresa empresa){
-        empresas.add(empresa);
-        empresa.associarPlano(this);
-    }
-
-    public void removerEmpresa(Empresa empresa){
-        empresas.remove(empresa);
-        empresa.desassociarPlano();
-    }
 
     @Override
     public boolean equals(Object o) {

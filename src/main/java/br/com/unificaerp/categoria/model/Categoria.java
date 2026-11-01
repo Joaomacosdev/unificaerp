@@ -29,8 +29,7 @@ public class Categoria {
                     name = "empresa_fk"))
     private Empresa empresa;
 
-    @OneToMany(mappedBy = "categoria", fetch = FetchType.LAZY)
-    private List<Produto> produtos = new ArrayList<>();
+
 
 
     public Long getId() {
@@ -45,9 +44,6 @@ public class Categoria {
         return empresa;
     }
 
-    public List<Produto> getProdutos() {
-        return produtos;
-    }
 
     @Override
     public String toString() {

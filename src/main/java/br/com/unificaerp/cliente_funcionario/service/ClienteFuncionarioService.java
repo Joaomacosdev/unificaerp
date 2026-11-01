@@ -1,5 +1,6 @@
 package br.com.unificaerp.cliente_funcionario.service;
 
+import br.com.unificaerp.cliente_funcionario.dto.ClienteFuncionarioDTO;
 import br.com.unificaerp.cliente_funcionario.model.ClienteFuncionario;
 import br.com.unificaerp.cliente_funcionario.repository.ClienteFuncionarioRepository;
 import br.com.unificaerp.infra.exception.MsgApiException;
@@ -42,12 +43,33 @@ public class ClienteFuncionarioService {
 
 
 
+    public ClienteFuncionarioDTO salvar(ClienteFuncionario clienteFuncionario ) {
 
-    public ClienteFuncionario salvar(ClienteFuncionario clienteFuncionario ) {
+
+        if (clienteFuncionarioRepository.existeParaPessoa(clienteFuncionario.getPessoa().getId(), usuarioLogadoService.getEmpresaIdLogada())) {
+            throw new MsgApiException("Já existe um cliente/funcionário cadastrado para a pessoa informada.");
+        }
+
+        clienteFuncionario.setEmpresa(usuarioLogadoService.getEmpresaLogada());
+        clienteFuncionario = clienteFuncionarioRepository.saveAndFlush(clienteFuncionario);
+
+        ClienteFuncionarioDTO dto = new ClienteFuncionarioDTO();
+        dto.setId(clienteFuncionario.getId());
+        dto.setTipoClienteFuncionario(clienteFuncionario.getTipoCliente().name());
+        dto.setUsuarioId(clienteFuncionario.getUsuario() != null ? clienteFuncionario.getUsuario().getId() : null);
+        dto.setPessoaId(clienteFuncionario.getPessoa().getId());
+        dto.setNomePessoa(clienteFuncionario.getPessoa().getNome());
+        dto.setEmpresaId(clienteFuncionario.getEmpresa().getId());
+
+        return dto;
+    }
+
+
+    public ClienteFuncionario salvarClienteFunUser(ClienteFuncionario clienteFuncionario ) {
         return clienteFuncionarioRepository.saveAndFlush(clienteFuncionario);
     }
 
-    public ClienteFuncionario atualizar(ClienteFuncionario clienteFuncionario) {
+    public ClienteFuncionarioDTO atualizar(ClienteFuncionario clienteFuncionario) {
         if (clienteFuncionario.getId() == null) {
             throw new MsgApiException("Id do cliente/funcionário não informado para atualizar.");
         }
@@ -74,7 +96,18 @@ public class ClienteFuncionarioService {
         clienteFuncionario.setEmpresa(usuarioLogadoService.getEmpresaLogada());
         clienteFuncionario.setPessoa(pessoa);
         clienteFuncionario.setUsuario(usuario);
-        return clienteFuncionarioRepository.saveAndFlush(clienteFuncionario);
+
+        clienteFuncionario = clienteFuncionarioRepository.saveAndFlush(clienteFuncionario);
+
+        ClienteFuncionarioDTO dto = new ClienteFuncionarioDTO();
+        dto.setId(clienteFuncionario.getId());
+        dto.setTipoClienteFuncionario(clienteFuncionario.getTipoCliente().name());
+        dto.setUsuarioId(clienteFuncionario.getUsuario() != null ? clienteFuncionario.getUsuario().getId() : null);
+        dto.setPessoaId(clienteFuncionario.getPessoa().getId());
+        dto.setNomePessoa(clienteFuncionario.getPessoa().getNome());
+        dto.setEmpresaId(clienteFuncionario.getEmpresa().getId());
+
+        return dto;
     }
 
     public List<ClienteFuncionario> findAll(Long idEmpresa) {
@@ -138,8 +171,25 @@ public class ClienteFuncionarioService {
         return clienteFuncionarioRepository.existsById(id, empresaId);
     }
 
-    public List<ClienteFuncionario> listar(Long empresaId) {
-        return clienteFuncionarioRepository.listar(empresaId);
+    public List<ClienteFuncionarioDTO> listar(Long empresaId) {
+
+        List<ClienteFuncionarioDTO> clienteFuncionarioDTOs = new ArrayList<ClienteFuncionarioDTO>();
+        List<ClienteFuncionario> clientesFuncionarios = clienteFuncionarioRepository.listar(empresaId);
+
+        for (ClienteFuncionario clienteFuncionario : clientesFuncionarios) {
+            ClienteFuncionarioDTO dto = new ClienteFuncionarioDTO();
+
+            dto.setId(clienteFuncionario.getId());
+            dto.setTipoClienteFuncionario(clienteFuncionario.getTipoCliente().name());
+            dto.setUsuarioId(clienteFuncionario.getUsuario() != null ? clienteFuncionario.getUsuario().getId() : null);
+            dto.setPessoaId(clienteFuncionario.getPessoa().getId());
+            dto.setNomePessoa(clienteFuncionario.getPessoa().getNome());
+            dto.setEmpresaId(clienteFuncionario.getEmpresa().getId());
+
+            clienteFuncionarioDTOs.add(dto);
+        }
+
+        return clienteFuncionarioDTOs;
     }
 
     public Optional<ClienteFuncionario> buscarPorId(Long id, Long empresaId) {

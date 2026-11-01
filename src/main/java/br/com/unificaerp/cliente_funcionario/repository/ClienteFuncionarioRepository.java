@@ -37,6 +37,10 @@ public interface ClienteFuncionarioRepository extends UnificaRepository<ClienteF
             + " = unaccent(upper(trim(:nome)))")
     boolean existePorNome(@Param("nome") String nome, @Param("idEmpresa") Long idEmpresa);
 
+    @Query("select count(c.id) > 0 from ClienteFuncionario c where c.empresa.id = :idEmpresa "
+            + " and c.pessoa.id = :idPessoa and c.empresa.id = :idEmpresa")
+    boolean existeParaPessoa(@Param("idPessoa") Long idPessoa, @Param("idEmpresa") Long idEmpresa);
+
     /*Verifica se existe outro registro no banco de dados com a mesma pessoa (nome) mas ID diferentes da que está tentando atualizar*/
     @Query("select count(c.id) > 0 from ClienteFuncionario c where c.empresa.id = :idEmpresa "
             + " and unaccent(upper(trim(c.pessoa.nome))) "
@@ -51,6 +55,7 @@ public interface ClienteFuncionarioRepository extends UnificaRepository<ClienteF
 
     @Transactional
     @Modifying(flushAutomatically = true, clearAutomatically = true)
-    @Query(value = "update cliente_funcionarios set usuario_id = null where empresa_id = :idEmpresa and usuario_id = :id", nativeQuery = true)
+    @Query(value = "update cliente_funcionario set usuario_id = null where empresa_id = :idEmpresa and usuario_id = :id", nativeQuery = true)
     void removeUserClienteFuncionarioId(@Param("id") Long id, @Param("idEmpresa") Long idEmpresa);
+
 }

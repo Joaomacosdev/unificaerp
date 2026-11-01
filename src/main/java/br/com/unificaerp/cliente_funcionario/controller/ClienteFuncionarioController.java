@@ -2,6 +2,7 @@ package br.com.unificaerp.cliente_funcionario.controller;
 
 import br.com.unificaerp.categoria.model.Categoria;
 import br.com.unificaerp.categoria.service.CategoriaService;
+import br.com.unificaerp.cliente_funcionario.dto.ClienteFuncionarioDTO;
 import br.com.unificaerp.cliente_funcionario.model.ClienteFuncionario;
 import br.com.unificaerp.cliente_funcionario.service.ClienteFuncionarioService;
 import br.com.unificaerp.usuario.service.UsuarioLogadoService;
@@ -29,27 +30,20 @@ public class ClienteFuncionarioController  {
     }
 
     @PostMapping("/salvar")
-    public ResponseEntity<ClienteFuncionario> salvar(
+    public ResponseEntity<ClienteFuncionarioDTO> salvar(
             @RequestBody @Valid ClienteFuncionario clienteFuncionario) {
         return ResponseEntity.ok(clienteFuncionarioService.salvar(clienteFuncionario));
     }
 
     @PostMapping("/atualizar")
-    public ResponseEntity<ClienteFuncionario> atualizar(
+    public ResponseEntity<ClienteFuncionarioDTO> atualizar(
             @RequestBody @Valid ClienteFuncionario clienteFuncionario) {
         return ResponseEntity.ok(clienteFuncionarioService.atualizar(clienteFuncionario));
     }
 
     @GetMapping("/listar")
-    public ResponseEntity<List<ClienteFuncionario>> listar() {
-        return ResponseEntity.ok(clienteFuncionarioService.listar(
-                usuarioLogadoService.getEmpresaIdLogada()));
-    }
-
-    @GetMapping("/findAll")
-    public ResponseEntity<List<ClienteFuncionario>> findAll() {
-        return ResponseEntity.ok(clienteFuncionarioService.findAll(
-                usuarioLogadoService.getEmpresaIdLogada()));
+    public ResponseEntity<List<ClienteFuncionarioDTO>> listar() {
+        return ResponseEntity.ok(clienteFuncionarioService.listar(usuarioLogadoService.getEmpresaIdLogada()));
     }
 
     @GetMapping("/buscaPorNome/{nome}")
@@ -140,6 +134,4 @@ public class ClienteFuncionarioController  {
                 usuarioLogadoService.getEmpresaIdLogada());
         return ResponseEntity.noContent().build();
     }
-
-
 }

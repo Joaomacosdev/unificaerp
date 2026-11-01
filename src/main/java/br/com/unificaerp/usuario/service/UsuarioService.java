@@ -24,6 +24,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -152,7 +153,7 @@ public class UsuarioService {
         }
 
         clienteFuncionario.setUsuario(usuario);
-        clienteFuncionarioService.salvar(clienteFuncionario);
+        clienteFuncionarioService.salvarClienteFunUser(clienteFuncionario);
 
         usuarioDto.setSenha("***Ocultada***");/*Não pode expor a senha na rede*/
         usuarioDto.setId(usuario.getId());
@@ -260,15 +261,39 @@ public class UsuarioService {
     }
 
     public void deleteById(Long id, Long idEmpresa) {
+        if (!usuarioRepository.existsById(id, idEmpresa)) {
+            throw new MsgApiException("Usuário não encontrado ou já foi deletado.");
+        }
+
         clienteFuncionarioService.removeUserClienteFuncionarioId(id, idEmpresa);
         usuarioRepository.deleteById(id, idEmpresa);
     }
 
     public long deleteAll(Long empresaID) {
+        if (usuarioRepository.total(empresaID) == 0) {
+            throw new MsgApiException("Nenhum usuário encontrado para deletar ou todos já foram deletados.");
+        }
+
         return usuarioRepository.deleteAll(empresaID);
     }
 
     void deletarAllById(Iterable<Long> ids, Long empresaId) {
+        List<Long> encontrados = usuarioRepository.buscarPorIds(ids, empresaId).stream().map(Usuario::getId).toList();
+        List<Long> naoEncontrados = new ArrayList<>();
+        ids.forEach(id -> {
+            if (!encontrados.contains(id)) {
+                naoEncontrados.add(id);
+            }
+        });
+
+        if (encontrados.isEmpty() && naoEncontrados.isEmpty()) {
+            throw new MsgApiException("Nenhum registro informado para deletar.");
+        }
+
+        if (!naoEncontrados.isEmpty()) {
+            throw new MsgApiException("Usuários não encontrados ou já deletados: " + naoEncontrados);
+        }
+
         usuarioRepository.deletarAllById(ids, empresaId);
     }
 
@@ -294,6 +319,8 @@ public class UsuarioService {
             dto.setLiberado(usuario.isEnabled());
             dto.setEmpresa(usuario.getEmpresa().getPessoa().getNome());
             dto.setTipoClienteFuncionario(usuario.getClienteFuncionario().getTipoCliente().name());
+            dto.setPessoaId(usuario.getClienteFuncionario().getPessoa().getId());
+            dto.setClienteFuncionarioId(usuario.getClienteFuncionario().getId());
 
             dtos.add(dto);
         }

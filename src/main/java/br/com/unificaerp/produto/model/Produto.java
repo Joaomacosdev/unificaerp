@@ -4,12 +4,16 @@ import br.com.unificaerp.categoria.model.Categoria;
 import br.com.unificaerp.empresa.model.Empresa;
 import br.com.unificaerp.produto.model.enums.UnidadeMedida;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "produto", uniqueConstraints = {
         @UniqueConstraint(name = "uk_produto_sku", columnNames = "sku"),
         @UniqueConstraint(name = "uk_produto_empresa", columnNames = "empresa")
@@ -32,7 +36,7 @@ public class Produto {
     @Column(name = "estoque", nullable = false)
     private Double estoque;
     @Column(name = "sku", nullable = false)
-    private String SKU;
+    private String sku;
     @Column(name = "codigo_barra")
     private String codigoBarra;
 
