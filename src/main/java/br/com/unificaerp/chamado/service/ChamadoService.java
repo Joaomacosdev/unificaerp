@@ -116,5 +116,4 @@ public class ChamadoService {
         chamadoRepository.deleteById(id, idEmpresa);
     }
 
-
 }

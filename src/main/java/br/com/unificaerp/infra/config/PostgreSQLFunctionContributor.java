@@ -1,4 +1,4 @@
-package br.com.unificaerp.config;
+package br.com.unificaerp.infra.config;
 
 import org.hibernate.boot.model.FunctionContributions;
 import org.hibernate.boot.model.FunctionContributor;

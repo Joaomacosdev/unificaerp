@@ -46,9 +46,10 @@ public class Empresa {
     private Pessoa pessoa;
 
 
-    @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "plano_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY) /* LAZY -> Carrega o plano quando tiver necessidade */
+    @JoinColumn(name = "plano_id", nullable = false,
+            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,
+                    name = "plano_fk"))
     private Plano plano;
 
 

@@ -1,19 +1,15 @@
 package br.com.unificaerp.chamado.model;
 
-import br.com.unificaerp.chamado.model.enums.Prioridade;
 import br.com.unificaerp.chamado.model.enums.PrioridadeChamado;
 import br.com.unificaerp.chamado.model.enums.StatusChamado;
 import br.com.unificaerp.chamado.model.enums.TipoChamado;
 import br.com.unificaerp.empresa.model.Empresa;
-import br.com.unificaerp.menssagem.model.Mensagem;
 import br.com.unificaerp.usuario.model.Usuario;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "chamados")
@@ -26,44 +22,66 @@ public class Chamado {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_chamado")
     private Long id;
 
+    @Column(nullable = false)
     private String titulo;
-    private String descricao;
-    @Enumerated(EnumType.STRING)
-    private TipoChamado tipoChamado;
-    @Enumerated(EnumType.STRING)
-    private StatusChamado statusChamado;
-    @Enumerated(EnumType.STRING)
-    private PrioridadeChamado prioridadeChamado;
-    private LocalDate dataAbertura;
-    private LocalDate dataFechamento;
-    private Prioridade prioridade;
 
-    @OneToMany(mappedBy = "chamado", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<Mensagem> menssagens = new ArrayList<Mensagem>();
+    @Column(nullable = false)
+    private String descricao;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TipoChamado tipoChamado;;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PrioridadeChamado prioridadeChamado;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private StatusChamado statusChamado;
+
+    @Column(nullable = false)
+    private LocalDate dataAbertura;
+
+    private LocalDate dataFechamento;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "aberto_user_id", nullable = false,
-            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, name = "aberto_user_fk"))
+    @JoinColumn(name = "aberto_user_id",
+            nullable = false,
+            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,
+                    name = "aberto_user_fk"))
     private Usuario abertoUser;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fechado_user_id", nullable = false,
-            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, name = "fechado_user_fk"))
+    @JoinColumn(name = "fechado_user_id",
+            nullable = true,
+            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,
+                    name = "fechado_user_fk"))
     private Usuario fechadoUser;
 
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "atendente_id", nullable = false,
-            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, name = "atendente_fk"))
+    @JoinColumn(name = "atendente_id",
+            nullable = false,
+            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,
+                    name = "atendente_fk"))
     private Usuario atendente;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cliente_id", nullable = false,
-    foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, name = "cliente_fk"))
-    private Usuario cliente;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "empresa_id", nullable = false,
-     foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, name = "empresa_dk"))
+    @JoinColumn(name = "cliente_id",
+            nullable = false,
+            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,
+                    name = "cliente_fk"))
+    private Usuario cliente;
+
+
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "empresa_id",
+            nullable = false,
+            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,
+                    name = "empresa_fk"))
     private Empresa empresa;
 
 

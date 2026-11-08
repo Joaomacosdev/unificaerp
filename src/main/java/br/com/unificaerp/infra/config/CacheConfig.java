@@ -1,4 +1,4 @@
-package br.com.unificaerp.config;
+package br.com.unificaerp.infra.config;
 
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;

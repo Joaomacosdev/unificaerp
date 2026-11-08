@@ -1,0 +1,10 @@
+2026-11-08 15:23:44.327 [main] INFO  b.c.unificaerp.UnificaerpApplication - Starting UnificaerpApplication using Java 25.0.3 with PID 21876 (C:\projetos\unificaerp\target\classes started by JOÃO MARCOS in C:\projetos\unificaerp)
+2026-11-08 15:23:44.332 [main] INFO  b.c.unificaerp.UnificaerpApplication - The following 1 profile is active: "dev"
+2026-11-08 15:23:47.489 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2026-11-08 15:23:47.489 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/11.0.21]
+2026-11-08 15:23:48.905 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool - Starting...
+2026-11-08 15:23:49.152 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool - Added connection org.postgresql.jdbc.PgConnection@44485db
+2026-11-08 15:23:49.155 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool - Start completed.
+2026-11-08 15:23:57.504 [main] INFO  b.c.unificaerp.UnificaerpApplication - Started UnificaerpApplication in 14.321 seconds (process running for 15.421)
+2026-11-08 15:24:50.656 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool - Shutdown initiated...
+2026-11-08 15:24:50.660 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool - Shutdown completed.

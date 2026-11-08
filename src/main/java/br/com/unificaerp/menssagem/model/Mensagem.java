@@ -20,36 +20,47 @@ public class Mensagem {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_menssagem")
     private Long id;
 
-    @Column(name = "data_envio", nullable = false)
+    @Column(nullable = false)
     private LocalDate dataEnvio;
 
     private Boolean lida = false;
 
-    @Column(name = "conteudo")
+    @Column(nullable = false, columnDefinition = "text")
     private String conteudo;
 
-    @Column(name = "arquivo", columnDefinition = "TEXT")
+    @Column(nullable = false, columnDefinition = "text")
     private String arquivo;
 
 
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cliente_id", nullable = false,
-            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, name = "cliente_fk"))
-    private Usuario cliente;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "atendente_id", nullable = false,
-            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, name = "atendente_fk"))
-    private Usuario atendente;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chamado_id",
-    foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, name = "chamado_fk"))
+            nullable = false,
+            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,
+                    name = "chamado_fk"))
     private Chamado chamado;
 
+
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "atendente_id",
+            nullable = false,
+            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,
+                    name = "atendente_fk"))
+    private Usuario atendente;
+
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cliente_id",
+            nullable = false,
+            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,
+                    name = "cliente_fk"))
+    private Usuario cliente;
+
+
+    @ManyToOne(fetch = FetchType.LAZY) /* LAZY -> Carrega a empresa quando tiver necessidade */
     @JoinColumn(name = "empresa_id",
-            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, name = "empresa_fk"))
+            nullable = false,
+            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,
+                    name = "empresa_fk"))
     private Empresa empresa;
+
 }
