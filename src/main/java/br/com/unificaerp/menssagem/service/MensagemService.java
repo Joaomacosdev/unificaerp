@@ -4,20 +4,26 @@ import br.com.unificaerp.chamado.model.Chamado;
 import br.com.unificaerp.chamado.repository.ChamadoRepository;
 import br.com.unificaerp.infra.exception.MsgApiException;
 import br.com.unificaerp.menssagem.model.Mensagem;
+import br.com.unificaerp.menssagem.model.dto.MensagemDTO;
 import br.com.unificaerp.menssagem.repository.MensagemRepository;
 import br.com.unificaerp.usuario.model.Usuario;
 import br.com.unificaerp.usuario.repository.UsuarioRepository;
 import br.com.unificaerp.usuario.service.UsuarioLogadoService;
+import br.com.unificaerp.util.DtoUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+@Transactional(readOnly = true)
 
 @Service
 public class MensagemService {
@@ -48,7 +54,8 @@ public class MensagemService {
 
 
 
-    public Mensagem salvar(Mensagem mensagem) {
+    @Transactional
+    public MensagemDTO salvar(Mensagem mensagem) {
         Long empresaId = usuarioLogadoService.getEmpresaIdLogada();
 
         mensagem.setChamado(validarChamado(mensagem.getChamado(), empresaId));
@@ -56,10 +63,11 @@ public class MensagemService {
         mensagem.setCliente(validarUsuario(mensagem.getCliente(), empresaId));
         mensagem.setDataEnvio(LocalDate.now());
         mensagem.setEmpresa(usuarioLogadoService.getEmpresaLogada());
-        return mensagemRepository.saveAndFlush(mensagem);
+        return converterParaDto(mensagemRepository.saveAndFlush(mensagem));
     }
 
-    public Mensagem atualizar(Mensagem mensagem) {
+    @Transactional
+    public MensagemDTO atualizar(Mensagem mensagem) {
         if (mensagem.getId() == null) {
             throw new MsgApiException("Id da mensagem não informado para atualizar.");
         }
@@ -74,7 +82,7 @@ public class MensagemService {
         existente.setChamado(validarChamado(mensagem.getChamado(), empresaId));
         existente.setAtendente(validarUsuario(mensagem.getAtendente(), empresaId));
         existente.setCliente(validarUsuario(mensagem.getCliente(), empresaId));
-        return mensagemRepository.saveAndFlush(existente);
+        return converterParaDto(mensagemRepository.saveAndFlush(existente));
     }
 
     private Chamado validarChamado(Chamado chamado, Long empresaId) {
@@ -95,13 +103,13 @@ public class MensagemService {
                 .orElseThrow(() -> new MsgApiException("Usuário relacionado não encontrado para a empresa logada."));
     }
 
-    public List<Mensagem> findAll(Long idEmpresa) {
+    public List<MensagemDTO> findAll(Long idEmpresa) {
 
-        return mensagemRepository.findAll(idEmpresa);
+        return converterListaParaDto(mensagemRepository.findAll(idEmpresa));
     }
 
-    public List<Mensagem> buscaPorConteudo(String conteudo, Long idEmpresa) {
-        return mensagemRepository.buscaPorConteudo(conteudo, idEmpresa);
+    public List<MensagemDTO> buscaPorConteudo(String conteudo, Long idEmpresa) {
+        return converterListaParaDto(mensagemRepository.buscaPorConteudo(conteudo, idEmpresa));
     }
 
     public boolean existePorConteudo(String conteudo, Long idEmpresa) {
@@ -112,6 +120,7 @@ public class MensagemService {
         return mensagemRepository.existePorConteudoDiferenteId(id, conteudo, idEmpresa);
     }
 
+    @Transactional
     public void deleteById(Long id, Long idEmpresa) {
         if (!mensagemRepository.existsById(id, idEmpresa)) {
             throw new MsgApiException("Mensagem não encontrada ou já foi deletada.");
@@ -120,7 +129,17 @@ public class MensagemService {
         mensagemRepository.deleteById(id, idEmpresa);
     }
 
+    /*Exclusão em lote apaga tudo da empresa: só ROLE_ADMIN (P21)*/
+    private void exigirAdminParaExclusaoEmLote() {
+        if (!usuarioLogadoService.isAdmin()) {
+            throw new MsgApiException("Apenas administradores podem excluir registros em lote.", HttpStatus.FORBIDDEN);
+        }
+    }
+
+    @Transactional
     public long deleteAll(Long empresaID) {
+        exigirAdminParaExclusaoEmLote();
+
         if (mensagemRepository.total(empresaID) == 0) {
             throw new MsgApiException("Nenhuma mensagem encontrada para deletar ou todas já foram deletadas.");
         }
@@ -128,7 +147,10 @@ public class MensagemService {
         return mensagemRepository.deleteAll(empresaID);
     }
 
+    @Transactional
     public void deletarAllById(Iterable<Long> ids, Long empresaId) {
+        exigirAdminParaExclusaoEmLote();
+
         List<Long> encontrados = mensagemRepository.buscarPorIds(ids, empresaId).stream().map(Mensagem::getId).toList();
         List<Long> naoEncontrados = new ArrayList<>();
         ids.forEach(id -> {
@@ -148,38 +170,38 @@ public class MensagemService {
         mensagemRepository.deletarAllById(ids, empresaId);
     }
 
-    public List<Mensagem> buscarPorIds(Iterable<Long> ids, Long empresaId) {
-        return mensagemRepository.buscarPorIds(ids, empresaId);
+    public List<MensagemDTO> buscarPorIds(Iterable<Long> ids, Long empresaId) {
+        return converterListaParaDto(mensagemRepository.buscarPorIds(ids, empresaId));
     }
 
     public boolean existsById(Long id, Long empresaId) {
         return mensagemRepository.existsById(id, empresaId);
     }
 
-    public List<Mensagem> listar(Long empresaId) {
-        return mensagemRepository.listar(empresaId);
+    public List<MensagemDTO> listar(Long empresaId) {
+        return converterListaParaDto(mensagemRepository.listar(empresaId));
     }
 
-    public Optional<Mensagem> buscarPorId(Long id, Long empresaId) {
-        return mensagemRepository.buscarPorId(id, empresaId);
+    public Optional<MensagemDTO> buscarPorId(Long id, Long empresaId) {
+        return mensagemRepository.buscarPorId(id, empresaId).map(this::converterParaDto);
     }
 
     public long total(Long empresaId) {
         return mensagemRepository.total(empresaId);
     }
 
-    public Page<Mensagem> listarPaginado(Long empresaId, Pageable pageable) {
-        return mensagemRepository.listarPaginado(empresaId, pageable);
+    public Page<MensagemDTO> listarPaginado(Long empresaId, Pageable pageable) {
+        return mensagemRepository.listarPaginado(empresaId, pageable).map(this::converterParaDto);
     }
 
     // ====================Métodos específicos para Chamado====================
 
-    public List<Mensagem> findAllByChamado(Long idChamado, Long idEmpresa) {
-        return mensagemRepository.findAllByChamado(idChamado, idEmpresa);
+    public List<MensagemDTO> findAllByChamado(Long idChamado, Long idEmpresa) {
+        return converterListaParaDto(mensagemRepository.findAllByChamado(idChamado, idEmpresa));
     }
 
-    public List<Mensagem> buscaPorConteudoByChamado(String conteudo, Long idChamado, Long idEmpresa) {
-        return mensagemRepository.buscaPorConteudoByChamado(conteudo, idChamado, idEmpresa);
+    public List<MensagemDTO> buscaPorConteudoByChamado(String conteudo, Long idChamado, Long idEmpresa) {
+        return converterListaParaDto(mensagemRepository.buscaPorConteudoByChamado(conteudo, idChamado, idEmpresa));
     }
 
     public boolean existePorConteudoByChamado(String conteudo, Long idChamado, Long idEmpresa) {
@@ -194,6 +216,7 @@ public class MensagemService {
         return mensagemRepository.countByChamado(idChamado, idEmpresa);
     }
 
+    @Transactional
     public void deleteAllByChamado(Long idChamado, Long idEmpresa) {
         if (mensagemRepository.countByChamado(idChamado, idEmpresa) == 0) {
             throw new MsgApiException("Nenhuma mensagem encontrada para o chamado ou todas já foram deletadas.");
@@ -202,6 +225,7 @@ public class MensagemService {
         mensagemRepository.deleteAllByChamado(idChamado, idEmpresa);
     }
 
+    @Transactional
     public void deleteByIdAndChamado(Long id, Long idChamado, Long idEmpresa) {
         if (!mensagemRepository.buscarPorId(id, idEmpresa).filter(mensagem -> mensagem.getChamado() != null && mensagem.getChamado().getId().equals(idChamado)).isPresent()) {
             throw new MsgApiException("Mensagem não encontrada ou já foi deletada.");
@@ -212,26 +236,31 @@ public class MensagemService {
 
     // ====================Métodos para Status de Leitura====================
 
-    public List<Mensagem> findAllNaoLidas(Long idEmpresa) {
-        return mensagemRepository.findAllNaoLidas(idEmpresa);
+    public List<MensagemDTO> findAllNaoLidas(Long idEmpresa) {
+        return converterListaParaDto(mensagemRepository.findAllNaoLidas(idEmpresa));
     }
 
-    public List<Mensagem> findAllNaoLidasByChamado(Long idChamado, Long idEmpresa) {
-        return mensagemRepository.findAllNaoLidasByChamado(idChamado, idEmpresa);
+    public List<MensagemDTO> findAllNaoLidasByChamado(Long idChamado, Long idEmpresa) {
+        return converterListaParaDto(mensagemRepository.findAllNaoLidasByChamado(idChamado, idEmpresa));
     }
 
     public long countNaoLidasByChamado(Long idChamado, Long idEmpresa) {
         return mensagemRepository.countNaoLidasByChamado(idChamado, idEmpresa);
     }
 
+    @Transactional
     public void updateLida(Long id, Boolean lida, Long idEmpresa) {
+        if (!mensagemRepository.existsById(id, idEmpresa)) {
+            throw new MsgApiException("Mensagem não encontrada para a empresa logada.");
+        }
+
         mensagemRepository.updateLida(id, lida, idEmpresa);
     }
 
     // ====================Métodos para Atendente====================
 
-    public List<Mensagem> findAllByAtendente(Long idAtendente, Long idEmpresa) {
-        return mensagemRepository.findAllByAtendente(idAtendente, idEmpresa);
+    public List<MensagemDTO> findAllByAtendente(Long idAtendente, Long idEmpresa) {
+        return converterListaParaDto(mensagemRepository.findAllByAtendente(idAtendente, idEmpresa));
     }
 
     public long countByAtendente(Long idAtendente, Long idEmpresa) {
@@ -240,8 +269,8 @@ public class MensagemService {
 
     // ====================Métodos para Cliente====================
 
-    public List<Mensagem> findAllByCliente(Long idCliente, Long idEmpresa) {
-        return mensagemRepository.findAllByCliente(idCliente, idEmpresa);
+    public List<MensagemDTO> findAllByCliente(Long idCliente, Long idEmpresa) {
+        return converterListaParaDto(mensagemRepository.findAllByCliente(idCliente, idEmpresa));
     }
 
     public long countByCliente(Long idCliente, Long idEmpresa) {
@@ -250,16 +279,39 @@ public class MensagemService {
 
     // ====================Métodos Combinados====================
 
-    public List<Mensagem> findAllByChamadoAndAtendente(Long idChamado, Long idAtendente, Long idEmpresa) {
-        return mensagemRepository.findAllByChamadoAndAtendente(idChamado, idAtendente, idEmpresa);
+    public List<MensagemDTO> findAllByChamadoAndAtendente(Long idChamado, Long idAtendente, Long idEmpresa) {
+        return converterListaParaDto(mensagemRepository.findAllByChamadoAndAtendente(idChamado, idAtendente, idEmpresa));
     }
 
-    public List<Mensagem> findAllNaoLidasByAtendente(Long idAtendente, Long idEmpresa) {
-        return mensagemRepository.findAllNaoLidasByAtendente(idAtendente, idEmpresa);
+    public List<MensagemDTO> findAllNaoLidasByAtendente(Long idAtendente, Long idEmpresa) {
+        return converterListaParaDto(mensagemRepository.findAllNaoLidasByAtendente(idAtendente, idEmpresa));
     }
 
-    public List<Mensagem> findAllNaoLidasByCliente(Long idCliente, Long idEmpresa) {
-        return mensagemRepository.findAllNaoLidasByCliente(idCliente, idEmpresa);
+    public List<MensagemDTO> findAllNaoLidasByCliente(Long idCliente, Long idEmpresa) {
+        return converterListaParaDto(mensagemRepository.findAllNaoLidasByCliente(idCliente, idEmpresa));
+    }
+
+    // ====================Conversão para DTO====================
+
+    private MensagemDTO converterParaDto(Mensagem mensagem) {
+        MensagemDTO dto = new MensagemDTO();
+        dto.setId(mensagem.getId());
+        dto.setDataEnvio(mensagem.getDataEnvio());
+        dto.setLida(mensagem.getLida());
+        dto.setConteudo(mensagem.getConteudo());
+        dto.setArquivo(mensagem.getArquivo());
+        dto.setChamadoId(mensagem.getChamado().getId());
+        dto.setChamadoTitulo(mensagem.getChamado().getTitulo());
+        dto.setAtendenteId(mensagem.getAtendente().getId());
+        dto.setAtendenteNome(DtoUtil.nomeUsuario(mensagem.getAtendente()));
+        dto.setClienteId(mensagem.getCliente().getId());
+        dto.setClienteNome(DtoUtil.nomeUsuario(mensagem.getCliente()));
+        dto.setEmpresaId(mensagem.getEmpresa().getId());
+        return dto;
+    }
+
+    private List<MensagemDTO> converterListaParaDto(List<Mensagem> mensagens) {
+        return mensagens.stream().map(this::converterParaDto).toList();
     }
 
     // ====================dentro dos métodos do
