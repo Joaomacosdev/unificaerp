@@ -1,6 +1,7 @@
 package br.com.unificaerp.categoria.controller;
 
 import br.com.unificaerp.categoria.model.Categoria;
+import br.com.unificaerp.categoria.model.dto.CategoriaDTO;
 import br.com.unificaerp.categoria.service.CategoriaService;
 import br.com.unificaerp.usuario.service.UsuarioLogadoService;
 import jakarta.validation.Valid;
@@ -9,10 +10,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@PreAuthorize("isAuthenticated()")
 @RestController
 @RequestMapping("/api/categoria")
 public class CategoriaController {
@@ -30,20 +33,20 @@ public class CategoriaController {
 
 
     @PostMapping("/salvar")
-    public ResponseEntity<Categoria> salvar(@RequestBody @Valid Categoria categoria){
+    public ResponseEntity<CategoriaDTO> salvar(@RequestBody @Valid Categoria categoria){
 
-        Categoria usuarioSalvo = categoriaService.salvar(categoria);
+        CategoriaDTO categoriaSalva = categoriaService.salvar(categoria);
 
-        return ResponseEntity.ok(usuarioSalvo);
+        return ResponseEntity.ok(categoriaSalva);
     }
 
 
     @PostMapping("/atualizar")
-    public ResponseEntity<Categoria> atualizar(@RequestBody @Valid Categoria categoria){
+    public ResponseEntity<CategoriaDTO> atualizar(@RequestBody @Valid Categoria categoria){
 
-        Categoria usuarioSalvo = categoriaService.atualizar(categoria);
+        CategoriaDTO categoriaAtualizada = categoriaService.atualizar(categoria);
 
-        return ResponseEntity.ok(usuarioSalvo);
+        return ResponseEntity.ok(categoriaAtualizada);
     }
 
     @DeleteMapping("/deletar/{id}")
@@ -56,21 +59,21 @@ public class CategoriaController {
 
 
     @GetMapping("/listar")
-    public ResponseEntity<List<Categoria>> listar(){
+    public ResponseEntity<List<CategoriaDTO>> listar(){
 
         return ResponseEntity.ok(categoriaService.findAll(usuarioLogadoService.getEmpresaIdLogada()));
     }
 
 
     @GetMapping("/buscaPorNome/{nome}")
-    public ResponseEntity<List<Categoria>> buscaPorNome(@PathVariable String nome){
+    public ResponseEntity<List<CategoriaDTO>> buscaPorNome(@PathVariable String nome){
 
         return ResponseEntity.ok(categoriaService.buscaPorNome(nome, usuarioLogadoService.getEmpresaIdLogada()));
     }
 
 
     @GetMapping("/buscarPorId/{id}")
-    public ResponseEntity<Categoria> buscarPorId(@PathVariable Long id){
+    public ResponseEntity<CategoriaDTO> buscarPorId(@PathVariable Long id){
 
         return ResponseEntity.ok(categoriaService.buscarPorId(id, usuarioLogadoService.getEmpresaIdLogada()));
     }
@@ -105,10 +108,10 @@ public class CategoriaController {
 
 
     @GetMapping("/paginado")
-    public ResponseEntity<Page<Categoria>> listarPaginado(@RequestParam(defaultValue = "0") int page,
-                                                          @RequestParam(defaultValue = "10") int size,
-                                                          @RequestParam(defaultValue = "id") String sort,
-                                                          @RequestParam(defaultValue = "asc") String direction){
+    public ResponseEntity<Page<CategoriaDTO>> listarPaginado(@RequestParam(defaultValue = "0") int page,
+                                                             @RequestParam(defaultValue = "10") int size,
+                                                             @RequestParam(defaultValue = "id") String sort,
+                                                             @RequestParam(defaultValue = "asc") String direction){
 
         Sort.Direction sortDirection = direction.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort));

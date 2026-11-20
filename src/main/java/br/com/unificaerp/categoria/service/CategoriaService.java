@@ -1,11 +1,13 @@
 package br.com.unificaerp.categoria.service;
 
 import br.com.unificaerp.categoria.model.Categoria;
+import br.com.unificaerp.categoria.model.dto.CategoriaDTO;
 import br.com.unificaerp.categoria.repository.CategoriaRepository;
 import br.com.unificaerp.infra.exception.MsgApiException;
 import br.com.unificaerp.usuario.service.UsuarioLogadoService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -29,7 +31,8 @@ public class CategoriaService {
         this.usuarioLogadoService = usuarioLogadoService;
     }
 
-    public Categoria salvar(Categoria categoria) {
+    @Transactional
+    public CategoriaDTO salvar(Categoria categoria) {
 
         if (this.existePorNome(categoria.getNome(), usuarioLogadoService.getEmpresaIdLogada())) {
             throw new MsgApiException("Já existe uma categoria com o mesmo nome para a empresa logada.");
@@ -37,33 +40,40 @@ public class CategoriaService {
 
         categoria.setEmpresa(usuarioLogadoService.getEmpresaLogada());
 
-        return categoriaRepository.save(categoria);
+        return converterParaDto(categoriaRepository.saveAndFlush(categoria));
     }
 
 
-    public Categoria atualizar(Categoria categoria) {
+    @Transactional
+    public CategoriaDTO atualizar(Categoria categoria) {
 
         if(categoria.getId() == null) {
             throw new MsgApiException("Id da categoria não informado para atualizar.");
         }
 
-        if (this.existePorNomeDiferenteId(categoria.getId(),  categoria.getNome(), usuarioLogadoService.getEmpresaIdLogada())) {
+        Long empresaId = usuarioLogadoService.getEmpresaIdLogada();
+
+        /*Só atualiza categoria da empresa logada*/
+        Categoria existente = categoriaRepository.buscarPorId(categoria.getId(), empresaId)
+                .orElseThrow(() -> new MsgApiException("Categoria não encontrada para a empresa logada."));
+
+        if (this.existePorNomeDiferenteId(categoria.getId(),  categoria.getNome(), empresaId)) {
             throw new MsgApiException("Já existe uma categoria com o mesmo nome desta que sendo informada para atualizar, informe outro nome.");
         }
 
-        categoria.setEmpresa(usuarioLogadoService.getEmpresaLogada());
+        existente.setNome(categoria.getNome());
 
-        return categoriaRepository.save(categoria);
+        return converterParaDto(categoriaRepository.saveAndFlush(existente));
     }
 
 
     /* Os métodos do service serão chamador pelo Controller */
-    public List<Categoria> findAll(Long idEmpresa) {
-        return categoriaRepository.findAll(idEmpresa);
+    public List<CategoriaDTO> findAll(Long idEmpresa) {
+        return converterListaParaDto(categoriaRepository.findAll(idEmpresa));
     }
 
-    public List<Categoria> buscaPorNome(String nome, Long idEmpresa) {
-        return categoriaRepository.buscaPorNome(nome, idEmpresa);
+    public List<CategoriaDTO> buscaPorNome(String nome, Long idEmpresa) {
+        return converterListaParaDto(categoriaRepository.buscaPorNome(nome, idEmpresa));
     }
 
     public boolean existePorNome(String nome, Long idEmpresa) {
@@ -75,6 +85,7 @@ public class CategoriaService {
         return categoriaRepository.existePorNomeDiferenteId(id, nome, idEmpresa);
     }
 
+    @Transactional
     public void deleteById(Long id, Long idEmpresa) {
 
         if(!categoriaRepository.existsById(id, idEmpresa)) {
@@ -84,9 +95,11 @@ public class CategoriaService {
         categoriaRepository.deleteById(id, idEmpresa);
     }
 
-    public Categoria buscarPorId(Long id, Long idEmpresa) {
-        return categoriaRepository.buscarPorId(id, idEmpresa).orElseThrow(() ->
+    public CategoriaDTO buscarPorId(Long id, Long idEmpresa) {
+        Categoria categoria = categoriaRepository.buscarPorId(id, idEmpresa).orElseThrow(() ->
                 new MsgApiException("Categoria não encontrada para a empresa logada."));
+
+        return converterParaDto(categoria);
     }
 
     public long total(Long idEmpresa) {
@@ -97,19 +110,23 @@ public class CategoriaService {
         return categoriaRepository.existsById(id, idEmpresa);
     }
 
-    public Page<Categoria> listarPaginado(Long idEmpresa, Pageable pageable) {
-        return categoriaRepository.listarPaginado(idEmpresa, pageable);
+    public Page<CategoriaDTO> listarPaginado(Long idEmpresa, Pageable pageable) {
+        return categoriaRepository.listarPaginado(idEmpresa, pageable).map(this::converterParaDto);
     }
 
-    public List<Categoria> listarPaginadoDto(Long idEmpresa, Pageable pageable) {
+    public List<CategoriaDTO> listarPaginadoDto(Long idEmpresa, Pageable pageable) {
+        return listarPaginado(idEmpresa, pageable).getContent();
+    }
 
-        Page<Categoria> categorias = categoriaRepository.listarPaginado(idEmpresa, pageable);
-        List<Categoria> listaRetorno = new java.util.ArrayList<>();
+    private CategoriaDTO converterParaDto(Categoria categoria) {
+        CategoriaDTO dto = new CategoriaDTO();
+        dto.setId(categoria.getId());
+        dto.setNome(categoria.getNome());
+        dto.setEmpresaId(categoria.getEmpresa().getId());
+        return dto;
+    }
 
-        for (Categoria categoria : categorias) {
-            listaRetorno.add(categoria);
-        }
-
-        return listaRetorno;
+    private List<CategoriaDTO> converterListaParaDto(List<Categoria> categorias) {
+        return categorias.stream().map(this::converterParaDto).toList();
     }
 }
