@@ -1,6 +1,7 @@
 package br.com.unificaerp.pessoa.controller;
 
 import br.com.unificaerp.pessoa.model.Pessoa;
+import br.com.unificaerp.pessoa.model.dto.PessoaDTO;
 import br.com.unificaerp.pessoa.service.PessoaService;
 import br.com.unificaerp.usuario.service.UsuarioLogadoService;
 import jakarta.validation.Valid;
@@ -9,10 +10,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@PreAuthorize("isAuthenticated()")
 @RestController
 @RequestMapping("/api/pessoa")
 public class PessoaController {
@@ -27,23 +30,23 @@ public class PessoaController {
     }
 
     @PostMapping("/salvar")
-    public ResponseEntity<Pessoa> salvar(@RequestBody @Valid Pessoa pessoa) {
+    public ResponseEntity<PessoaDTO> salvar(@RequestBody @Valid Pessoa pessoa) {
         return ResponseEntity.ok(pessoaService.salvar(pessoa));
     }
 
     @PostMapping("/atualizar")
-    public ResponseEntity<Pessoa> atualizar(@RequestBody @Valid Pessoa pessoa) {
+    public ResponseEntity<PessoaDTO> atualizar(@RequestBody @Valid Pessoa pessoa) {
         return ResponseEntity.ok(pessoaService.atualizar(pessoa));
     }
 
     @GetMapping("/listar")
-    public ResponseEntity<List<Pessoa>> findAll() {
+    public ResponseEntity<List<PessoaDTO>> findAll() {
         return ResponseEntity.ok(pessoaService.findAll(
                 usuarioLogadoService.getEmpresaIdLogada()));
     }
 
     @GetMapping("/buscaPorNome/{nome}")
-    public ResponseEntity<List<Pessoa>> buscaPorNome(@PathVariable String nome) {
+    public ResponseEntity<List<PessoaDTO>> buscaPorNome(@PathVariable String nome) {
         return ResponseEntity.ok(pessoaService.buscaPorNome(nome,
                 usuarioLogadoService.getEmpresaIdLogada()));
     }
@@ -62,14 +65,14 @@ public class PessoaController {
     }
 
     @GetMapping("/listarTodos")
-    public ResponseEntity<List<Pessoa>> listar() {
+    public ResponseEntity<List<PessoaDTO>> listar() {
         return ResponseEntity.ok(pessoaService.listar(
                 usuarioLogadoService.getEmpresaIdLogada()));
     }
 
     @GetMapping("/buscarPorId/{id}")
-    public ResponseEntity<Pessoa> buscarPorId(@PathVariable Long id) {
-        return pessoaService.buscarPorId(id, usuarioLogadoService.getEmpresaIdLogada())
+    public ResponseEntity<PessoaDTO> buscarPorId(@PathVariable Long id) {
+        return pessoaService.buscarPorIdDto(id, usuarioLogadoService.getEmpresaIdLogada())
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -81,7 +84,7 @@ public class PessoaController {
     }
 
     @PostMapping("/buscarPorIds")
-    public ResponseEntity<List<Pessoa>> buscarPorIds(@RequestBody Iterable<Long> ids) {
+    public ResponseEntity<List<PessoaDTO>> buscarPorIds(@RequestBody Iterable<Long> ids) {
         return ResponseEntity.ok(pessoaService.buscarPorIds(ids,
                 usuarioLogadoService.getEmpresaIdLogada()));
     }
@@ -93,7 +96,7 @@ public class PessoaController {
     }
 
     @GetMapping("/paginado")
-    public ResponseEntity<Page<Pessoa>> listarPaginado(
+    public ResponseEntity<Page<PessoaDTO>> listarPaginado(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sort,
@@ -111,12 +114,14 @@ public class PessoaController {
         return ResponseEntity.ok("Pessoa deletada com sucesso.");
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @DeleteMapping("/deletarTodos")
     public ResponseEntity<Long> deleteAll() {
         return ResponseEntity.ok(pessoaService.deleteAll(
                 usuarioLogadoService.getEmpresaIdLogada()));
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @DeleteMapping("/deletarTodosPorIds")
     public ResponseEntity<Void> deletarAllById(@RequestBody Iterable<Long> ids) {
         pessoaService.deletarAllById(ids,

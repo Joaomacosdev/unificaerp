@@ -4,11 +4,25 @@ import br.com.unificaerp.cliente_funcionario.model.ClienteFuncionario;
 import br.com.unificaerp.empresa.model.Empresa;
 import br.com.unificaerp.pessoa.model.enums.TipoPessoa;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.hibernate.validator.constraints.br.CNPJ;
+import org.hibernate.validator.constraints.br.CPF;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
+@Getter
+@Setter
+@ToString(onlyExplicitlyIncluded = true)
 @Entity
 @Table(name = "pessoas",
         uniqueConstraints = {
@@ -24,284 +38,123 @@ public class Pessoa {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_pessoa")
     private Long id;
-    @Column(name = "nome", nullable = false)
+
+    @NotBlank(message = "Nome deve ser informado")
+    @Column(nullable = false)
+    @ToString.Include
     private String nome;
-    @Column(name = "razao_social", nullable = false, length = 60)
+
+    @Column
+    @ToString.Include
     private String razaoSocial;
-    @Column(name = "nome_fantasia", nullable = false)
+
+    @Column
+    @ToString.Include
     private String nomeFantasia;
-    @Column(name = "insc_estadual", nullable = false, length = 14)
-    private String inscEstadual;
-    @Column(name = "cnpj", nullable = false, length = 18)
+
+    @Column(unique = true, name = "inscricao_estadual")
+    private String inscricaoEstadual;
+
+    /*
+     * Documentos (P13, script V2): e-mail obrigatório para todos, CPF só para
+     * pessoa física e CNPJ só para pessoa jurídica. Os três são únicos no banco
+     * inteiro (P12); a unique do PostgreSQL aceita vários NULL. Em branco vira
+     * NULL nos setters, senão dois cadastros sem o documento bateriam na unique.
+     */
+    @CNPJ(message = "Informe o CNPJ corretamente",format = CNPJ.Format.ALPHANUMERIC)
+    @Column(unique = true)
     private String cnpj;
-    @Column(name = "cpf", nullable = false, length = 14)
-    private String cpf;
-    @Column(name = "email", nullable = false, length = 150)
-    private String email;
-    @Column(name = "telefone", nullable = false, length = 15)
+
+    @NotBlank(message = "Informe o telefone corretamente")
+    @Column(nullable = false)
     private String telefone;
+
+    @CPF(message = "Informe o CPF corretamente")
+    @Column(unique = true)
+    private String cpf;
+
+    @NotBlank(message = "Informe o e-mail corretamente")
+    @Email(message = "Informe o e-mail corretamente")
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    @NotNull(message = "Informe o tipo da pessoa PF ou PJ")
     @Enumerated(EnumType.STRING)
-    @Column(name = "tipo_pessoa", nullable = false)
+    @Column(nullable = false)
+    @ToString.Include
     private TipoPessoa tipoPessoa;
 
-    private Boolean ativo;
+    @NotNull(message = "Informe se a pessoa está ativa")
+    @Column(nullable = false)
+    @ToString.Include
+    private Boolean ativo = true;
 
-    @Column(name = "data_cadastro")
-    private LocalDateTime dataCadastro;
+    /*Preenchida pelo PessoaService no cadastro e mantida na edição (P20). A coluna é NOT NULL.*/
+    @Column(nullable = false)
+    @ToString.Include
+    private LocalDate dataCadastro;
 
-    @Column(name = "observacao")
+    @Column(length = 1000)
     private String observacao;
-    @Column(name = "cep", nullable = false, length = 9)
+
+    @NotBlank(message = "Informe o CEP corretamente")
+    @Column(nullable = false)
     private String cep;
-    @Column(name = "logradouro", length = 100)
+
+    @NotBlank(message = "Informe a rua/logradouro da forma correta")
+    @Column(nullable = false)
     private String logradouro;
-    @Column(name = "bairro", nullable = false, length = 100)
+
+    @NotBlank(message = "Informe o Bairro corretamente")
+    @Column(nullable = false)
     private String bairro;
-    @Column(name = "estado", nullable = false, length = 2)
+
+    @NotBlank(message = "Informe o Estado corretamente")
+    @Column(nullable = false)
     private String estado;
-    @Column(name = "cidade", nullable = false, length = 100)
+
+    @NotBlank(message = "Informe o Cidade corretamente")
+    @Column(nullable = false)
     private String cidade;
-    @Column(name = "pais", nullable = false, length = 100)
+
+    @NotBlank(message = "Informe o País corretamente")
+    @Column(nullable = false)
     private String pais;
-    @Column(name = "complemento", nullable = false, length = 150)
+
+    @Column
     private String complemento;
 
     /*Refere-se ao cadastro da empresa em multitanci*/
     @ManyToOne(fetch = FetchType.LAZY) /* LAZY -> Carrega a empresa quando tiver necessidade */
     @JoinColumn(name = "empresa_id",
-            nullable = true,
+            nullable = false,
             foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,
                     name = "empresa_fk"))
     private Empresa empresa;
 
-
-
-    public Pessoa() {
-    }
-
-    public Pessoa(String nome, String razaoSocial, String nomeFantasia, String inscEstadual, String cnpj, String cpf, String email, String telefone, TipoPessoa tipoPessoa, Boolean ativo, LocalDateTime dataCadastro, String observacao, String cep, String logradouro, String bairro, String estado, String cidade, String pais, String complemento, Empresa empresa) {
-        this.nome = nome;
-        this.razaoSocial = razaoSocial;
-        this.nomeFantasia = nomeFantasia;
-        this.inscEstadual = inscEstadual;
-        this.cnpj = cnpj;
-        this.cpf = cpf;
-        this.email = email;
-        this.telefone = telefone;
-        this.tipoPessoa = tipoPessoa;
-        this.ativo = ativo;
-        this.dataCadastro = dataCadastro;
-        this.observacao = observacao;
-        this.cep = cep;
-        this.logradouro = logradouro;
-        this.bairro = bairro;
-        this.estado = estado;
-        this.cidade = cidade;
-        this.pais = pais;
-        this.complemento = complemento;
-        this.empresa = empresa;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getNome() {
-        return nome;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    public String getRazaoSocial() {
-        return razaoSocial;
-    }
-
-    public void setRazaoSocial(String razaoSocial) {
-        this.razaoSocial = razaoSocial;
-    }
-
-    public String getNomeFantasia() {
-        return nomeFantasia;
-    }
-
-    public void setNomeFantasia(String nomeFantasia) {
-        this.nomeFantasia = nomeFantasia;
-    }
-
-    public String getInscEstadual() {
-        return inscEstadual;
-    }
-
-    public void setInscEstadual(String inscEstadual) {
-        this.inscEstadual = inscEstadual;
-    }
-
-    public String getCnpj() {
-        return cnpj;
+    public void setCpf(String cpf) {
+        this.cpf = vazioParaNulo(cpf);
     }
 
     public void setCnpj(String cnpj) {
-        this.cnpj = cnpj;
+        this.cnpj = vazioParaNulo(cnpj);
     }
 
-    public String getCpf() {
-        return cpf;
+    /*Mesma regra das CHECKs pessoa_cpf_pessoa_fisica_check e pessoa_cnpj_pessoa_juridica_check do banco (V2)*/
+    @JsonIgnore
+    @AssertTrue(message = "Informe o CPF para pessoa física")
+    public boolean isCpfInformadoParaPessoaFisica() {
+        return tipoPessoa != TipoPessoa.FISICA || cpf != null;
     }
 
-    public void setCpf(String cpf) {
-        this.cpf = cpf;
+    @JsonIgnore
+    @AssertTrue(message = "Informe o CNPJ para pessoa jurídica")
+    public boolean isCnpjInformadoParaPessoaJuridica() {
+        return tipoPessoa != TipoPessoa.JURIDICA || cnpj != null;
     }
 
-    public String getEmail() {
-        return email;
+    private static String vazioParaNulo(String valor) {
+        return valor == null || valor.isBlank() ? null : valor.trim();
     }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getTelefone() {
-        return telefone;
-    }
-
-    public void setTelefone(String telefone) {
-        this.telefone = telefone;
-    }
-
-    public TipoPessoa getTipoPessoa() {
-        return tipoPessoa;
-    }
-
-    public void setTipoPessoa(TipoPessoa tipoPessoa) {
-        this.tipoPessoa = tipoPessoa;
-    }
-
-    public Boolean getAtivo() {
-        return ativo;
-    }
-
-    public void setAtivo(Boolean ativo) {
-        this.ativo = ativo;
-    }
-
-    public LocalDateTime getDataCadastro() {
-        return dataCadastro;
-    }
-
-    public void setDataCadastro(LocalDateTime dataCadastro) {
-        this.dataCadastro = dataCadastro;
-    }
-
-    public String getObservacao() {
-        return observacao;
-    }
-
-    public void setObservacao(String observacao) {
-        this.observacao = observacao;
-    }
-
-    public String getCep() {
-        return cep;
-    }
-
-    public void setCep(String cep) {
-        this.cep = cep;
-    }
-
-    public String getLogradouro() {
-        return logradouro;
-    }
-
-    public void setLogradouro(String logradouro) {
-        this.logradouro = logradouro;
-    }
-
-    public String getBairro() {
-        return bairro;
-    }
-
-    public void setBairro(String bairro) {
-        this.bairro = bairro;
-    }
-
-    public String getEstado() {
-        return estado;
-    }
-
-    public void setEstado(String estado) {
-        this.estado = estado;
-    }
-
-    public String getCidade() {
-        return cidade;
-    }
-
-    public void setCidade(String cidade) {
-        this.cidade = cidade;
-    }
-
-    public String getPais() {
-        return pais;
-    }
-
-    public void setPais(String pais) {
-        this.pais = pais;
-    }
-
-    public String getComplemento() {
-        return complemento;
-    }
-
-    public void setComplemento(String complemento) {
-        this.complemento = complemento;
-    }
-
-    public Empresa getEmpresa() {
-        return empresa;
-    }
-
-    public void setEmpresa(Empresa empresa) {
-        this.empresa = empresa;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        Pessoa pessoa = (Pessoa) o;
-        return Objects.equals(id, pessoa.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(id);
-    }
-
-    @Override
-    public String toString() {
-        return "Pessoa{" +
-                "nome='" + nome + '\'' +
-                ", razaoSocial='" + razaoSocial + '\'' +
-                ", nomeFantasia='" + nomeFantasia + '\'' +
-                ", inscEstadual='" + inscEstadual + '\'' +
-                ", cnpj='" + cnpj + '\'' +
-                ", telefone='" + telefone + '\'' +
-                ", tipoPessoa=" + tipoPessoa +
-                ", ativo=" + ativo +
-                ", dataCadastro=" + dataCadastro +
-                ", observacao='" + observacao + '\'' +
-                ", cep='" + cep + '\'' +
-                ", logradouro='" + logradouro + '\'' +
-                ", bairro='" + bairro + '\'' +
-                ", estado='" + estado + '\'' +
-                ", cidade='" + cidade + '\'' +
-                ", pais='" + pais + '\'' +
-                ", complemento='" + complemento + '\'' +
-                '}';
-    }
 }
