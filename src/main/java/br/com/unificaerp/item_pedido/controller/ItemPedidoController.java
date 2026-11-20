@@ -1,6 +1,7 @@
 package br.com.unificaerp.item_pedido.controller;
 
 import br.com.unificaerp.item_pedido.model.ItemPedido;
+import br.com.unificaerp.item_pedido.model.dto.ItemPedidoDTO;
 import br.com.unificaerp.item_pedido.service.ItemPedidoService;
 import br.com.unificaerp.usuario.service.UsuarioLogadoService;
 import jakarta.validation.Valid;
@@ -9,10 +10,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@PreAuthorize("isAuthenticated()")
 @RestController
 @RequestMapping("/api/itemPedido")
 public class ItemPedidoController {
@@ -27,23 +30,23 @@ public class ItemPedidoController {
     }
 
     @PostMapping("/salvar")
-    public ResponseEntity<ItemPedido> salvar(@RequestBody @Valid ItemPedido itemPedido) {
+    public ResponseEntity<ItemPedidoDTO> salvar(@RequestBody @Valid ItemPedido itemPedido) {
         return ResponseEntity.ok(itemPedidoService.salvar(itemPedido));
     }
 
     @PostMapping("/atualizar")
-    public ResponseEntity<ItemPedido> atualizar(@RequestBody @Valid ItemPedido itemPedido) {
+    public ResponseEntity<ItemPedidoDTO> atualizar(@RequestBody @Valid ItemPedido itemPedido) {
         return ResponseEntity.ok(itemPedidoService.atualizar(itemPedido));
     }
 
     @GetMapping("/listar/{idPedido}")
-    public ResponseEntity<List<ItemPedido>> listar(@PathVariable Long idPedido) {
+    public ResponseEntity<List<ItemPedidoDTO>> listar(@PathVariable Long idPedido) {
         return ResponseEntity.ok(itemPedidoService.findAll(idPedido,
                 usuarioLogadoService.getEmpresaIdLogada()));
     }
 
     @GetMapping("/buscaPorNome/{idPedido}/{nome}")
-    public ResponseEntity<List<ItemPedido>> buscaPorNome(
+    public ResponseEntity<List<ItemPedidoDTO>> buscaPorNome(
             @PathVariable Long idPedido, @PathVariable String nome) {
         return ResponseEntity.ok(itemPedidoService.buscaPorNome(nome, idPedido,
                 usuarioLogadoService.getEmpresaIdLogada()));
@@ -64,13 +67,13 @@ public class ItemPedidoController {
     }
 
     @GetMapping("/listarTodos")
-    public ResponseEntity<List<ItemPedido>> listarTodos() {
+    public ResponseEntity<List<ItemPedidoDTO>> listarTodos() {
         return ResponseEntity.ok(itemPedidoService.listar(
                 usuarioLogadoService.getEmpresaIdLogada()));
     }
 
     @GetMapping("/buscarPorId/{id}")
-    public ResponseEntity<ItemPedido> buscarPorId(@PathVariable Long id) {
+    public ResponseEntity<ItemPedidoDTO> buscarPorId(@PathVariable Long id) {
         return itemPedidoService.buscarPorId(id, usuarioLogadoService.getEmpresaIdLogada())
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
@@ -83,7 +86,7 @@ public class ItemPedidoController {
     }
 
     @PostMapping("/buscarPorIds")
-    public ResponseEntity<List<ItemPedido>> buscarPorIds(@RequestBody Iterable<Long> ids) {
+    public ResponseEntity<List<ItemPedidoDTO>> buscarPorIds(@RequestBody Iterable<Long> ids) {
         return ResponseEntity.ok(itemPedidoService.buscarPorIds(ids,
                 usuarioLogadoService.getEmpresaIdLogada()));
     }
@@ -95,7 +98,7 @@ public class ItemPedidoController {
     }
 
     @GetMapping("/paginado")
-    public ResponseEntity<Page<ItemPedido>> listarPaginado(
+    public ResponseEntity<Page<ItemPedidoDTO>> listarPaginado(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sort,
@@ -115,12 +118,14 @@ public class ItemPedidoController {
         return ResponseEntity.ok("Item do pedido deletado com sucesso.");
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @DeleteMapping("/deletarTodos")
     public ResponseEntity<Long> deleteAll() {
         return ResponseEntity.ok(itemPedidoService.deleteAll(
                 usuarioLogadoService.getEmpresaIdLogada()));
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @DeleteMapping("/deletarTodosPorIds")
     public ResponseEntity<Void> deletarAllById(@RequestBody Iterable<Long> ids) {
         itemPedidoService.deletarAllById(ids,
@@ -129,13 +134,13 @@ public class ItemPedidoController {
     }
 
     @GetMapping("/listarPorPedido/{idPedido}")
-    public ResponseEntity<List<ItemPedido>> findAllByPedido(@PathVariable Long idPedido) {
+    public ResponseEntity<List<ItemPedidoDTO>> findAllByPedido(@PathVariable Long idPedido) {
         return ResponseEntity.ok(itemPedidoService.findAllByPedido(idPedido,
                 usuarioLogadoService.getEmpresaIdLogada()));
     }
 
     @GetMapping("/buscaPorNomePorPedido/{idPedido}/{nome}")
-    public ResponseEntity<List<ItemPedido>> buscaPorNomePorPedido(
+    public ResponseEntity<List<ItemPedidoDTO>> buscaPorNomePorPedido(
             @PathVariable Long idPedido, @PathVariable String nome) {
         return ResponseEntity.ok(itemPedidoService.buscaPorNomePorPedido(nome, idPedido,
                 usuarioLogadoService.getEmpresaIdLogada()));
