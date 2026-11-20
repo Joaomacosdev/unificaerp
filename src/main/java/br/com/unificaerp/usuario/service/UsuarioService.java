@@ -160,7 +160,7 @@ public class UsuarioService {
         usuarioDto.setClienteFuncionarioId(clienteFuncionario.getId());
         usuarioDto.setEmpresa(clienteFuncionario.getEmpresa().getPessoa().getNome());
         usuarioDto.setPessoa(clienteFuncionario.getPessoa().getNome());
-        usuarioDto.setTipoClienteFuncionario(clienteFuncionario.getTipoCliente().name());
+        usuarioDto.setTipoClienteFuncionario(clienteFuncionario.getTipoClienteFuncionario().name());
         return usuarioDto;
     }
 
@@ -196,7 +196,7 @@ public class UsuarioService {
         usuarioDto.setClienteFuncionarioId(clienteFuncionario.getId());
         usuarioDto.setEmpresa(clienteFuncionario.getEmpresa().getPessoa().getNome());
         usuarioDto.setPessoa(clienteFuncionario.getPessoa().getNome());
-        usuarioDto.setTipoClienteFuncionario(clienteFuncionario.getTipoCliente().name());
+        usuarioDto.setTipoClienteFuncionario(clienteFuncionario.getTipoClienteFuncionario().name());
 
         return usuarioDto;
     }
@@ -318,7 +318,7 @@ public class UsuarioService {
             dto.setPessoa(usuario.getClienteFuncionario().getPessoa().getNome());
             dto.setLiberado(usuario.isEnabled());
             dto.setEmpresa(usuario.getEmpresa().getPessoa().getNome());
-            dto.setTipoClienteFuncionario(usuario.getClienteFuncionario().getTipoCliente().name());
+            dto.setTipoClienteFuncionario(usuario.getClienteFuncionario().getTipoClienteFuncionario().name());
             dto.setPessoaId(usuario.getClienteFuncionario().getPessoa().getId());
             dto.setClienteFuncionarioId(usuario.getClienteFuncionario().getId());
 
@@ -346,7 +346,7 @@ public class UsuarioService {
         dto.setPessoa(usuario.get().getClienteFuncionario().getPessoa().getNome());
         dto.setLiberado(usuario.get().isEnabled());
         dto.setEmpresa(usuario.get().getEmpresa().getPessoa().getNome());
-        dto.setTipoClienteFuncionario(usuario.get().getClienteFuncionario().getTipoCliente().name());
+        dto.setTipoClienteFuncionario(usuario.get().getClienteFuncionario().getTipoClienteFuncionario().name());
 
         return dto;
     }
@@ -373,7 +373,7 @@ public class UsuarioService {
             dto.setPessoa(usuario.getClienteFuncionario().getPessoa().getNome());
             dto.setLiberado(usuario.isEnabled());
             dto.setEmpresa(usuario.getEmpresa().getPessoa().getNome());
-            dto.setTipoClienteFuncionario(usuario.getClienteFuncionario().getTipoCliente().name());
+            dto.setTipoClienteFuncionario(usuario.getClienteFuncionario().getTipoClienteFuncionario().name());
 
             dtos.add(dto);
         }
@@ -393,7 +393,7 @@ public class UsuarioService {
         dto.setPessoa(usuario.getClienteFuncionario().getPessoa().getNome());
         dto.setLiberado(usuario.isEnabled());
         dto.setEmpresa(usuario.getEmpresa().getPessoa().getNome());
-        dto.setTipoClienteFuncionario(usuario.getClienteFuncionario().getTipoCliente().name());
+        dto.setTipoClienteFuncionario(usuario.getClienteFuncionario().getTipoClienteFuncionario().name());
         return dto;
     }
 

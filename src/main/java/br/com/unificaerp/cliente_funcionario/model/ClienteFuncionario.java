@@ -1,6 +1,6 @@
 package br.com.unificaerp.cliente_funcionario.model;
 
-import br.com.unificaerp.cliente_funcionario.model.enums.TipoCliente;
+import br.com.unificaerp.cliente_funcionario.model.enums.TipoClienteFuncionario;
 import br.com.unificaerp.empresa.model.Empresa;
 import br.com.unificaerp.pessoa.model.Pessoa;
 import br.com.unificaerp.usuario.model.Usuario;
@@ -30,7 +30,7 @@ public class ClienteFuncionario {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_cliente", nullable = false)
-    private TipoCliente tipoCliente;
+    private TipoClienteFuncionario tipoClienteFuncionario;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id",
