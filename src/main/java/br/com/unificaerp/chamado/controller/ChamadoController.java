@@ -1,14 +1,17 @@
 package br.com.unificaerp.chamado.controller;
 
 import br.com.unificaerp.chamado.model.Chamado;
+import br.com.unificaerp.chamado.model.dto.ChamadoDTO;
 import br.com.unificaerp.chamado.service.ChamadoService;
 import br.com.unificaerp.usuario.service.UsuarioLogadoService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@PreAuthorize("isAuthenticated()")
 @RestController
 @RequestMapping("/api/chamado")
 public class ChamadoController {
@@ -23,30 +26,30 @@ public class ChamadoController {
     }
 
     @PostMapping("/salvar")
-    public ResponseEntity<Chamado> salvar(@RequestBody @Valid Chamado chamado) {
+    public ResponseEntity<ChamadoDTO> salvar(@RequestBody @Valid Chamado chamado) {
         return ResponseEntity.ok(chamadoService.salvar(chamado));
     }
 
     @PostMapping("/atualizar")
-    public ResponseEntity<Chamado> atualizar(@RequestBody @Valid Chamado chamado) {
+    public ResponseEntity<ChamadoDTO> atualizar(@RequestBody @Valid Chamado chamado) {
         return ResponseEntity.ok(chamadoService.atualizar(chamado));
     }
 
     @GetMapping("/listar")
-    public ResponseEntity<List<Chamado>> listar() {
+    public ResponseEntity<List<ChamadoDTO>> listar() {
         return ResponseEntity.ok(chamadoService.findAll(
                 usuarioLogadoService.getEmpresaIdLogada()));
     }
 
     @GetMapping("/buscarPorId/{id}")
-    public ResponseEntity<Chamado> buscarPorId(@PathVariable Long id) {
+    public ResponseEntity<ChamadoDTO> buscarPorId(@PathVariable Long id) {
         return chamadoService.buscarPorId(id, usuarioLogadoService.getEmpresaIdLogada())
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/buscaPorTitulo/{titulo}")
-    public ResponseEntity<List<Chamado>> buscaPorTitulo(@PathVariable String titulo) {
+    public ResponseEntity<List<ChamadoDTO>> buscaPorTitulo(@PathVariable String titulo) {
         return ResponseEntity.ok(chamadoService.buscaPorTitulo(titulo,
                 usuarioLogadoService.getEmpresaIdLogada()));
     }
@@ -69,5 +72,4 @@ public class ChamadoController {
         chamadoService.deleteById(id, usuarioLogadoService.getEmpresaIdLogada());
         return ResponseEntity.ok("Chamado deletado com sucesso.");
     }
-
 }
