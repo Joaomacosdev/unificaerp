@@ -8,8 +8,10 @@ import java.time.LocalDate;
 @Getter
 @Setter
 public class EmpresaDTO {
+
     private Long id;
-    private String planoId;
+    private Long planoId;
+    private String planoNome;
     private Integer totalUsuario = 0;
     private Integer totalCliente = 0;
     private Boolean planoAtivo = false;

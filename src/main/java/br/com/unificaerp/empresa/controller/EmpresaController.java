@@ -5,10 +5,12 @@ import br.com.unificaerp.empresa.model.Empresa;
 import br.com.unificaerp.empresa.service.EmpresaService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 @RestController
 @RequestMapping("/api/empresa")
 public class EmpresaController {
@@ -29,6 +31,7 @@ public class EmpresaController {
         return ResponseEntity.ok(empresaService.atualizar(empresa));
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/buscarPorId/{id}")
     public ResponseEntity<EmpresaDTO> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(empresaService.buscaPorId(id));
@@ -60,5 +63,4 @@ public class EmpresaController {
         empresaService.deleteById(id);
         return ResponseEntity.ok("Empresa deletada com sucesso.");
     }
-
 }

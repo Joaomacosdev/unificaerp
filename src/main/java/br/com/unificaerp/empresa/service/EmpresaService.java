@@ -13,10 +13,12 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Transactional(readOnly = true)
 @Service
 public class EmpresaService {
 
@@ -32,6 +34,19 @@ public class EmpresaService {
 
     private final UsuarioLogadoService usuarioLogadoService;
 
+    static final String MSG_APAGAR_PROPRIA_EMPRESA = "Você não pode apagar a sua própria empresa: você e os usuários dela "
+            + "perderiam o acesso ao sistema. Se ela precisar mesmo ser apagada, peça a um administrador de outra empresa.";
+
+    static final String MSG_BLOQUEAR_PROPRIA_EMPRESA = "Você não pode bloquear a sua própria empresa: você e os usuários dela "
+            + "perderiam o acesso ao sistema. Se ela precisar mesmo ser bloqueada, peça a um administrador de outra empresa.";
+
+    /*Empresa é dado global (cadastro dos clientes do SaaS): só ROLE_ADMIN cadastra, altera, apaga ou lista*/
+    private void exigirAdmin(String operacao) {
+        if (!usuarioLogadoService.isAdmin()) {
+            throw new MsgApiException("Apenas administradores podem " + operacao + " empresas.", HttpStatus.FORBIDDEN);
+        }
+    }
+
     public EmpresaService(EmpresaRepository empresaRepository, PlanoRepository planoRepository, PessoaService pessoaService, UsuarioLogadoService usuarioLogadoService) {
         this.empresaRepository = empresaRepository;
         this.planoRepository = planoRepository;
@@ -41,44 +56,37 @@ public class EmpresaService {
 
 
 
+    @Transactional
     public EmpresaDTO salvar(Empresa empresa) {
 
-        if (empresaRepository.existePorPessoa(empresa.getPessoa().getId())) {
-            Pessoa pessoa = pessoaService.buscarPorId(empresa.getPessoa().getId(), usuarioLogadoService.getEmpresaIdLogada()).get();
-            throw new MsgApiException("Já existe uma empresa cadastrada para a pessoa: " + pessoa.getNome());
-        }
-
-        if (!usuarioLogadoService.isAdmin()) {
-            throw new MsgApiException("Apenas administradores podem cadastrar empresas.", HttpStatus.FORBIDDEN);
-        }
+        /*Permissão antes de tudo: usuário comum não pode nem descobrir se a pessoa já tem empresa*/
+        exigirAdmin("cadastrar");
 
         if (empresa.getPessoa() == null || empresa.getPessoa().getId() == null) {
             throw new MsgApiException("Pessoa deve ser informada para cadastrar a empresa.");
         }
 
+        if (empresaRepository.existePorPessoa(empresa.getPessoa().getId())) {
+            /*O nome só aparece se a pessoa for da empresa logada; de outra empresa, a mensagem fica sem nome*/
+            String nome = pessoaService.buscarPorId(empresa.getPessoa().getId(), usuarioLogadoService.getEmpresaIdLogada())
+                    .map(Pessoa::getNome)
+                    .orElse("informada");
+            throw new MsgApiException("Já existe uma empresa cadastrada para a pessoa: " + nome);
+        }
+
+        /*bloqueio nulo vira false (decidido em 2026-11-12)*/
+        empresa.setBloqueio(Boolean.TRUE.equals(empresa.getBloqueio()));
         empresa.setPlano(validarPlano(empresa.getPlano()));
+        /*Referência gerenciada no lugar do objeto do request (só com id), para o DTO ler o nome da pessoa*/
+        empresa.setPessoa(entityManager.getReference(Pessoa.class, empresa.getPessoa().getId()));
 
-        empresa =  empresaRepository.saveAndFlush(empresa);
-
-        EmpresaDTO dto = new EmpresaDTO();
-        dto.setId(empresa.getId());
-        dto.setTotalUsuario(empresa.getTotalUsuario());
-        dto.setTotalCliente(empresa.getTotalCliente());
-        dto.setPlanoAtivo(empresa.getPlanoAtivo());
-        dto.setBloqueio(empresa.getBloqueio());
-        dto.setLogoMarca(empresa.getLogoMarca());
-        dto.setVigenciaPlano(empresa.getVigenciaPlano());
-        dto.setPessoaId(empresa.getPlano().getId());
-        dto.setPessoaNome(empresa.getPessoa().getNome());
-
-        return dto;
+        return converterParaDto(empresaRepository.saveAndFlush(empresa));
     }
 
+    @Transactional
     public EmpresaDTO atualizar(Empresa empresa) {
 
-        if (!usuarioLogadoService.isAdmin()) {
-            throw new MsgApiException("Apenas administradores podem atualizar empresas.", HttpStatus.FORBIDDEN);
-        }
+        exigirAdmin("atualizar");
 
         if (empresa.getId() == null) {
             throw new MsgApiException("Id da empresa deve ser informado para edição.");
@@ -90,12 +98,20 @@ public class EmpresaService {
             throw new MsgApiException("Empresa com id: " + empresa.getId() + " não foi encontrada.");
         }
 
+        /*bloqueio nulo vira false (decidido em 2026-11-12)*/
+        empresa.setBloqueio(Boolean.TRUE.equals(empresa.getBloqueio()));
+
+        /*P25: bloquear a própria empresa tiraria o acesso do admin logado e de todos os usuários dela*/
+        if (empresa.getBloqueio() && empresa.getId().equals(usuarioLogadoService.getEmpresaIdLogada())) {
+            throw new MsgApiException(MSG_BLOQUEAR_PROPRIA_EMPRESA, HttpStatus.FORBIDDEN);
+        }
+
         if (empresa.getPessoa() == null || empresa.getPessoa().getId() == null) {
             throw new MsgApiException("Pessoa deve ser informada para atualizar a empresa.");
         }
 
         existente.setPlano(validarPlano(empresa.getPlano()));
-        existente.setPessoa(empresa.getPessoa());
+        existente.setPessoa(entityManager.getReference(Pessoa.class, empresa.getPessoa().getId()));
         existente.setTotalUsuario(empresa.getTotalUsuario());
         existente.setTotalCliente(empresa.getTotalCliente());
         existente.setPlanoAtivo(empresa.getPlanoAtivo());
@@ -103,21 +119,7 @@ public class EmpresaService {
         existente.setLogoMarca(empresa.getLogoMarca());
         existente.setVigenciaPlano(empresa.getVigenciaPlano());
 
-
-        existente =  empresaRepository.saveAndFlush(existente);
-
-        EmpresaDTO dto = new EmpresaDTO();
-        dto.setId(existente.getId());
-        dto.setTotalUsuario(existente.getTotalUsuario());
-        dto.setTotalCliente(existente.getTotalCliente());
-        dto.setPlanoAtivo(existente.getPlanoAtivo());
-        dto.setBloqueio(existente.getBloqueio());
-        dto.setLogoMarca(existente.getLogoMarca());
-        dto.setVigenciaPlano(existente.getVigenciaPlano());
-        dto.setPessoaId(existente.getPlano().getId());
-        dto.setPessoaNome(existente.getPessoa().getNome());
-
-        return dto;
+        return converterParaDto(empresaRepository.saveAndFlush(existente));
 
     }
 
@@ -130,80 +132,49 @@ public class EmpresaService {
                 .orElseThrow(() -> new MsgApiException("Plano com id: " + plano.getId() + " não foi encontrado."));
     }
 
+    /** Administrador vê qualquer empresa; o usuário comum, só a dele. */
     public EmpresaDTO buscaPorId(Long id) {
+
+        if (!usuarioLogadoService.isAdmin() && !usuarioLogadoService.getEmpresaIdLogada().equals(id)) {
+            throw new MsgApiException("Apenas administradores podem consultar outras empresas.", HttpStatus.FORBIDDEN);
+        }
 
         Empresa empresa = empresaRepository.buscarPorId(id);
 
-        EmpresaDTO dto = new EmpresaDTO();
-        dto.setId(empresa.getId());
-        dto.setTotalUsuario(empresa.getTotalUsuario());
-        dto.setTotalCliente(empresa.getTotalCliente());
-        dto.setPlanoAtivo(empresa.getPlanoAtivo());
-        dto.setBloqueio(empresa.getBloqueio());
-        dto.setLogoMarca(empresa.getLogoMarca());
-        dto.setVigenciaPlano(empresa.getVigenciaPlano());
-        dto.setPessoaId(empresa.getPlano().getId());
-        dto.setPessoaNome(empresa.getPessoa().getNome());
+        if (empresa == null) {
+            throw new MsgApiException("Empresa com id: " + id + " não foi encontrada.");
+        }
 
-        return dto;
+        return converterParaDto(empresa);
     }
 
     public List<EmpresaDTO> findAll() {
-
-        List<Empresa> empresas = empresaRepository.findAll();
-        List<EmpresaDTO> dtos = new ArrayList<EmpresaDTO>();
-
-        for (Empresa empresa : empresas) {
-            EmpresaDTO dto = new EmpresaDTO();
-            dto.setId(empresa.getId());
-            dto.setTotalUsuario(empresa.getTotalUsuario());
-            dto.setTotalCliente(empresa.getTotalCliente());
-            dto.setPlanoAtivo(empresa.getPlanoAtivo());
-            dto.setBloqueio(empresa.getBloqueio());
-            dto.setLogoMarca(empresa.getLogoMarca());
-            dto.setVigenciaPlano(empresa.getVigenciaPlano());
-            dto.setPessoaId(empresa.getPlano().getId());
-            dto.setPessoaNome(empresa.getPessoa().getNome());
-            dtos.add(dto);
-        }
-
-        return dtos;
+        exigirAdmin("consultar");
+        return converterListaParaDto(empresaRepository.findAll());
     }
 
     public List<EmpresaDTO> buscaPorNome(String nome) {
-
-        List<Empresa> empresas = empresaRepository.buscaPorNome(nome);
-        List<EmpresaDTO> dtos = new ArrayList<EmpresaDTO>();
-
-        for (Empresa empresa : empresas) {
-            EmpresaDTO dto = new EmpresaDTO();
-            dto.setId(empresa.getId());
-            dto.setTotalUsuario(empresa.getTotalUsuario());
-            dto.setTotalCliente(empresa.getTotalCliente());
-            dto.setPlanoAtivo(empresa.getPlanoAtivo());
-            dto.setBloqueio(empresa.getBloqueio());
-            dto.setLogoMarca(empresa.getLogoMarca());
-            dto.setVigenciaPlano(empresa.getVigenciaPlano());
-            dto.setPessoaId(empresa.getPlano().getId());
-            dto.setPessoaNome(empresa.getPessoa().getNome());
-            dtos.add(dto);
-        }
-
-        return dtos;
-
+        exigirAdmin("consultar");
+        return converterListaParaDto(empresaRepository.buscaPorNome(nome));
     }
 
     public boolean existePorNome(String nome) {
+        exigirAdmin("consultar");
         return empresaRepository.existePorNome(nome);
     }
 
     public boolean existePorNomeDiferenteId(Long id, String nome) {
+        exigirAdmin("consultar");
         return empresaRepository.existePorNomeDiferenteId(id, nome);
     }
 
+    @Transactional
     public void deleteById(Long id) {
-        if (!usuarioLogadoService.isAdmin()) {
-            throw new MsgApiException("Apenas administradores podem deletar empresas.", HttpStatus.FORBIDDEN);
+        exigirAdmin("deletar");
+
+        /*P25: apagar a própria empresa tiraria o acesso do admin logado e de todos os usuários dela*/
+        if (id != null && id.equals(usuarioLogadoService.getEmpresaIdLogada())) {
+            throw new MsgApiException(MSG_APAGAR_PROPRIA_EMPRESA, HttpStatus.FORBIDDEN);
         }
 
         if (empresaRepository.buscarPorId(id) == null) {
@@ -212,6 +183,28 @@ public class EmpresaService {
 
         empresaRepository.deleteById(id);
 
+    }
+
+    // ====================Conversão para DTO====================
+
+    private EmpresaDTO converterParaDto(Empresa empresa) {
+        EmpresaDTO dto = new EmpresaDTO();
+        dto.setId(empresa.getId());
+        dto.setPlanoId(empresa.getPlano().getId());
+        dto.setPlanoNome(empresa.getPlano().getNome());
+        dto.setTotalUsuario(empresa.getTotalUsuario());
+        dto.setTotalCliente(empresa.getTotalCliente());
+        dto.setPlanoAtivo(empresa.getPlanoAtivo());
+        dto.setBloqueio(empresa.getBloqueio());
+        dto.setLogoMarca(empresa.getLogoMarca());
+        dto.setVigenciaPlano(empresa.getVigenciaPlano());
+        dto.setPessoaId(empresa.getPessoa().getId());
+        dto.setPessoaNome(empresa.getPessoa().getNome());
+        return dto;
+    }
+
+    private List<EmpresaDTO> converterListaParaDto(List<Empresa> empresas) {
+        return empresas.stream().map(this::converterParaDto).toList();
     }
 
     // ====================dentro dos métodos do

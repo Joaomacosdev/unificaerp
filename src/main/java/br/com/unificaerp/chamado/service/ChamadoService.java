@@ -10,13 +10,14 @@ import br.com.unificaerp.usuario.service.UsuarioLogadoService;
 import br.com.unificaerp.util.DtoUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+@Transactional(readOnly = true)
 @Service
 public class ChamadoService {
 

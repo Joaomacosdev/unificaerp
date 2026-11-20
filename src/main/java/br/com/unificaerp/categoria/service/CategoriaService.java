@@ -7,15 +7,15 @@ import br.com.unificaerp.infra.exception.MsgApiException;
 import br.com.unificaerp.usuario.service.UsuarioLogadoService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
+@Transactional(readOnly = true)
 public class CategoriaService {
 
     private final CategoriaRepository categoriaRepository;
