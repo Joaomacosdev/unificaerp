@@ -1,7 +1,7 @@
 package br.com.unificaerp.pedido.model;
 
 import br.com.unificaerp.empresa.model.Empresa;
-import br.com.unificaerp.pedido.enums.TipoPedido;
+import br.com.unificaerp.pedido.model.enums.TipoPedido;
 import br.com.unificaerp.pedido.model.enums.FormaPagamento;
 import br.com.unificaerp.pedido.model.enums.StatusPedido;
 import br.com.unificaerp.usuario.model.Usuario;
@@ -13,7 +13,6 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "pedidos")

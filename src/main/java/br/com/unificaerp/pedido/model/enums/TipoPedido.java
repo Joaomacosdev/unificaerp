@@ -1,4 +1,4 @@
-package br.com.unificaerp.pedido.enums;
+package br.com.unificaerp.pedido.model.enums;
 
 public enum TipoPedido {
 
