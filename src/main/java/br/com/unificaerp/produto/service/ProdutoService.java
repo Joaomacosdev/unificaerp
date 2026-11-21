@@ -4,19 +4,23 @@ import br.com.unificaerp.categoria.model.Categoria;
 import br.com.unificaerp.categoria.repository.CategoriaRepository;
 import br.com.unificaerp.infra.exception.MsgApiException;
 import br.com.unificaerp.produto.model.Produto;
+import br.com.unificaerp.produto.model.dto.ProdutoDTO;
 import br.com.unificaerp.produto.repository.ProdutoRepository;
 import br.com.unificaerp.usuario.service.UsuarioLogadoService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional(readOnly = true)
 public class ProdutoService {
 
     private final ProdutoRepository produtoRepository;
@@ -40,7 +44,8 @@ public class ProdutoService {
 
 
 
-    public Produto salvar(Produto produto) {
+    @Transactional
+    public ProdutoDTO salvar(Produto produto) {
         Long empresaId = usuarioLogadoService.getEmpresaIdLogada();
         if (produtoRepository.existePorNome(produto.getNome(), empresaId)) {
             throw new MsgApiException("Já existe um produto com o mesmo nome para a empresa logada.");
@@ -48,10 +53,11 @@ public class ProdutoService {
 
         produto.setCategoria(validarCategoria(produto.getCategoria(), empresaId));
         produto.setEmpresa(usuarioLogadoService.getEmpresaLogada());
-        return produtoRepository.saveAndFlush(produto);
+        return converterParaDto(produtoRepository.saveAndFlush(produto));
     }
 
-    public Produto atualizar(Produto produto) {
+    @Transactional
+    public ProdutoDTO atualizar(Produto produto) {
         if (produto.getId() == null) {
             throw new MsgApiException("Id do produto não informado para atualizar.");
         }
@@ -67,7 +73,7 @@ public class ProdutoService {
 
         produto.setCategoria(validarCategoria(produto.getCategoria(), empresaId));
         produto.setEmpresa(usuarioLogadoService.getEmpresaLogada());
-        return produtoRepository.saveAndFlush(produto);
+        return converterParaDto(produtoRepository.saveAndFlush(produto));
     }
 
     private Categoria validarCategoria(Categoria categoria, Long empresaId) {
@@ -79,13 +85,13 @@ public class ProdutoService {
                 .orElseThrow(() -> new MsgApiException("Categoria não encontrada para a empresa logada."));
     }
 
-    public List<Produto> findAll(Long idEmpresa) {
+    public List<ProdutoDTO> findAll(Long idEmpresa) {
 
-        return produtoRepository.findAll(idEmpresa);
+        return converterListaParaDto(produtoRepository.findAll(idEmpresa));
     }
 
-    public List<Produto> buscaPorNome(String nome, Long idEmpresa) {
-        return produtoRepository.buscaPorNome(nome, idEmpresa);
+    public List<ProdutoDTO> buscaPorNome(String nome, Long idEmpresa) {
+        return converterListaParaDto(produtoRepository.buscaPorNome(nome, idEmpresa));
     }
 
     public boolean existePorNome(String nome, Long idEmpresa) {
@@ -96,6 +102,7 @@ public class ProdutoService {
         return produtoRepository.existePorNomeDiferenteId(id, nome, idEmpresa);
     }
 
+    @Transactional
     public void deleteById(Long id, Long idEmpresa) {
         if (!produtoRepository.existsById(id, idEmpresa)) {
             throw new MsgApiException("Produto não encontrado ou já foi deletado.");
@@ -104,7 +111,17 @@ public class ProdutoService {
         produtoRepository.deleteById(id, idEmpresa);
     }
 
+    /*Exclusão em lote apaga tudo da empresa: só ROLE_ADMIN (P21)*/
+    private void exigirAdminParaExclusaoEmLote() {
+        if (!usuarioLogadoService.isAdmin()) {
+            throw new MsgApiException("Apenas administradores podem excluir registros em lote.", HttpStatus.FORBIDDEN);
+        }
+    }
+
+    @Transactional
     public long deleteAll(Long empresaID) {
+        exigirAdminParaExclusaoEmLote();
+
         if (produtoRepository.total(empresaID) == 0) {
             throw new MsgApiException("Nenhum produto encontrado para deletar ou todos já foram deletados.");
         }
@@ -112,7 +129,10 @@ public class ProdutoService {
         return produtoRepository.deleteAll(empresaID);
     }
 
+    @Transactional
     public void deletarAllById(Iterable<Long> ids, Long empresaId) {
+        exigirAdminParaExclusaoEmLote();
+
         List<Long> encontrados = produtoRepository.buscarPorIds(ids, empresaId).stream().map(Produto::getId).toList();
         List<Long> naoEncontrados = new ArrayList<>();
         ids.forEach(id -> {
@@ -132,28 +152,52 @@ public class ProdutoService {
         produtoRepository.deletarAllById(ids, empresaId);
     }
 
-    public List<Produto> buscarPorIds(Iterable<Long> ids, Long empresaId) {
-        return produtoRepository.buscarPorIds(ids, empresaId);
+    public List<ProdutoDTO> buscarPorIds(Iterable<Long> ids, Long empresaId) {
+        return converterListaParaDto(produtoRepository.buscarPorIds(ids, empresaId));
     }
 
     public boolean existsById(Long id, Long empresaId) {
         return produtoRepository.existsById(id, empresaId);
     }
 
-    public List<Produto> listar(Long empresaId) {
-        return produtoRepository.listar(empresaId);
+    public List<ProdutoDTO> listar(Long empresaId) {
+        return converterListaParaDto(produtoRepository.listar(empresaId));
     }
 
-    public Optional<Produto> buscarPorId(Long id, Long empresaId) {
-        return produtoRepository.buscarPorId(id, empresaId);
+    public Optional<ProdutoDTO> buscarPorId(Long id, Long empresaId) {
+        return produtoRepository.buscarPorId(id, empresaId).map(this::converterParaDto);
     }
 
     public long total(Long empresaId) {
         return produtoRepository.total(empresaId);
     }
 
-    public Page<Produto> listarPaginado(Long empresaId, Pageable pageable) {
-        return produtoRepository.listarPaginado(empresaId, pageable);
+    public Page<ProdutoDTO> listarPaginado(Long empresaId, Pageable pageable) {
+        return produtoRepository.listarPaginado(empresaId, pageable).map(this::converterParaDto);
+    }
+
+    // ====================Conversão para DTO====================
+
+    private ProdutoDTO converterParaDto(Produto produto) {
+        ProdutoDTO dto = new ProdutoDTO();
+        dto.setId(produto.getId());
+        dto.setNome(produto.getNome());
+        dto.setDescricao(produto.getDescricao());
+        dto.setImagem(produto.getImagem());
+        dto.setPreco(produto.getPreco());
+        dto.setEstoque(produto.getEstoque());
+        dto.setEstoqueMinimo(produto.getEstoqueMinimo());
+        dto.setSku(produto.getSku());
+        dto.setCodigoBarra(produto.getCodigoBarra());
+        dto.setUnidadeMedida(produto.getUnidadeMedida());
+        dto.setCategoriaId(produto.getCategoria().getId());
+        dto.setCategoriaNome(produto.getCategoria().getNome());
+        dto.setEmpresaId(produto.getEmpresa().getId());
+        return dto;
+    }
+
+    private List<ProdutoDTO> converterListaParaDto(List<Produto> produtos) {
+        return produtos.stream().map(this::converterParaDto).toList();
     }
 
     // ====================dentro dos métodos do
