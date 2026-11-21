@@ -1,13 +1,16 @@
 package br.com.unificaerp.role.controller;
 
 import br.com.unificaerp.role.model.Role;
+import br.com.unificaerp.role.model.dto.RoleDTO;
 import br.com.unificaerp.role.service.RoleService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 @RestController
 @RequestMapping("/api/role")
 public class RoleController {
@@ -19,31 +22,31 @@ public class RoleController {
     }
 
     @PostMapping("/salvar")
-    public ResponseEntity<Role> salvar(@RequestBody @Valid Role role){
+    public ResponseEntity<RoleDTO> salvar(@RequestBody @Valid Role role){
         return ResponseEntity.ok(roleService.salvar(role));
     }
 
 
     @PostMapping("/atualizar")
-    public ResponseEntity<Role> atualizar(@RequestBody @Valid Role role){
+    public ResponseEntity<RoleDTO> atualizar(@RequestBody @Valid Role role){
         return ResponseEntity.ok(roleService.atualizar(role));
     }
 
     @GetMapping("/listar")
-    public ResponseEntity<List<Role>> findAll() {
+    public ResponseEntity<List<RoleDTO>> findAll() {
         return ResponseEntity.ok(roleService.listar());
     }
 
     @GetMapping("/buscarPorId/{id}")
-    public ResponseEntity<Role> buscarPorId(@PathVariable Long id) {
+    public ResponseEntity<RoleDTO> buscarPorId(@PathVariable Long id) {
         return roleService.buscarPorId(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/buscaPorAcesso/{acesso}")
-    public ResponseEntity<List<Role>> buscaPorAcesso(@PathVariable String acesso) {
-        return ResponseEntity.ok(roleService.buscaPorAcesso(acesso));
+    public ResponseEntity<List<RoleDTO>> buscaPorAcesso(@PathVariable String acesso) {
+        return ResponseEntity.ok(roleService.buscaPorAcessoDto(acesso));
     }
 
     @GetMapping("/existePorAcesso/{acesso}")

@@ -32,5 +32,18 @@ public class UsuarioLogadoService {
         return getUsuarioLogado().idAdmin();
     }
 
+    /**
+     * Se o usuário logado tem o acesso (role) informado. As roles vêm carregadas
+     * com o usuário no JwtFilter (Usuario.acessos é EAGER).
+     */
+    public boolean possuiAcesso(Long roleId) {
+        return roleId != null && getUsuarioLogado().getAcessos().stream().anyMatch(role -> roleId.equals(role.getId()));
+    }
+
+    /** Se o id é o do próprio usuário logado. */
+    public boolean isUsuarioLogado(Long usuarioId) {
+        return usuarioId != null && usuarioId.equals(getUsuarioLogadoId());
+    }
+
 
 }
